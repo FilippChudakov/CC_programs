@@ -503,14 +503,15 @@ function UI.run()
                 local arrayIndex = UI.selected - #screen.buttons - #screen.inputs
                 if arrayIndex >= 1 and arrayIndex <= #screen.buttonArrays then
                     local array = screen.buttonArrays[arrayIndex]
-                    if array then
+                    if array and #array.buttons > 0 then
                         if key == -1 then -- Прокрутка вверх
                             array.scrollOffset = math.max(0, array.scrollOffset - 1)
                             if array.isNavigatingInside then
                                 array.internalSelected = math.max(1, array.internalSelected - 1)
                             end
                         elseif key == 1 then -- Прокрутка вниз
-                            array.scrollOffset = math.min(#array.buttons - array.visibleRows, array.scrollOffset + 1)
+                            local maxOffset = math.max(0, #array.buttons - array.visibleRows)
+                            array.scrollOffset = math.min(maxOffset, array.scrollOffset + 1)
                             if array.isNavigatingInside then
                                 array.internalSelected = math.min(#array.buttons, array.internalSelected + 1)
                             end
