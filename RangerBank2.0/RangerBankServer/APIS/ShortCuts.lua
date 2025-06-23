@@ -323,46 +323,56 @@ function Short.TransferMoney(Sender, Receiver, Password, Summ, id)
         if fs.exists(BankSecondAccPATH) == true then
 
             print("Second account exists...")
-            local PassPATH = "BankAccounts/"..Sender.."/password.txt"
-            
-            local password = Short.Read(PassPATH)
-            
-            if Password == password then
-                print("Password correct...")
-                local MoneyPATH1 = "BankAccounts/"..Sender.."/money.txt"
+            if Sender ~= Receiver then
+
+                local PassPATH = "BankAccounts/"..Sender.."/password.txt"
+                local password = Short.Read(PassPATH)
+                
+                if Password == password then
+                    print("Password correct...")
+                    local MoneyPATH1 = "BankAccounts/"..Sender.."/money.txt"
         
-                local money = Short.Read(MoneyPATH1)
+                    local money = Short.Read(MoneyPATH1)
 
-                if tonumber(money) > Summ then
-                    print("Money enough...")
-                    local MoneyPATH2 = "BankAccounts/"..Receiver.."/money.txt"
-                    local BankMoneyPATH = "BankData/money.txt"
+                    if Summ > 0 then
+                        if tonumber(money) >= Summ then
+                            print("Money enough...")
+                            local MoneyPATH2 = "BankAccounts/"..Receiver.."/money.txt"
+                            local BankMoneyPATH = "BankData/money.txt"
 
-                    local money1 = Short.Read(MoneyPATH1)
-                    local money2 = Short.Read(MoneyPATH2)
-                    local bank_money = Short.Read(BankMoneyPATH)
+                            local money1 = Short.Read(MoneyPATH1)
+                            local money2 = Short.Read(MoneyPATH2)
+                            local bank_money = Short.Read(BankMoneyPATH)
 
-                    local new_money1 = tonumber(money1) - Summ
-                    local new_bank_money = tonumber(bank_money) + Summ - (Summ*Short.commission)
+                            local new_money1 = tonumber(money1) - Summ
+                            local new_bank_money = tonumber(bank_money) + Summ - (Summ*Short.commission)
 
-                    Short.Write(new_money1, MoneyPATH1)
-                    Short.Write(tonumber(money2) + (Summ*Short.commission), MoneyPATH2)
-                    Short.Write(new_bank_money, BankMoneyPATH)
+                            Short.Write(new_money1, MoneyPATH1)
+                            Short.Write(tonumber(money2) + (Summ*Short.commission), MoneyPATH2)
+                            Short.Write(new_bank_money, BankMoneyPATH)
 
-                    local LogTXT = fs.open("BankData/TransferLogs.txt", "a")
-                    LogTXT.write("\nTransferring "..Summ.." from account: "..Sender.." to account: "..Receiver.." id: "..id)
-                    LogTXT.write(" Commission: "..(Summ - Short.commission)..", Final transfer: "..(Summ*Short.commission))
-                    LogTXT.close()
+                            local LogTXT = fs.open("BankData/TransferLogs.txt", "a")
+                            LogTXT.write("\nTransferring "..Summ.." from account: "..Sender.." to account: "..Receiver.." id: "..id)
+                            LogTXT.write(" Commission: "..(Summ - Short.commission)..", Final transfer: "..(Summ*Short.commission))
+                            LogTXT.close()
                                 
-                    print("Transfering is completed!\n")
-                    return true
+                            print("Transfering is completed!\n")
+                            return true
+                        else
+                            printError("Not enough money!\n")
+                            return "not_enough_money"
+                        end
+                    else
+                        printError("Not enough money!\n")
+                        return "not_enough_money"
+                    end
                 else
-                    printError("Not enough money!\n")
-                    return "not_enough_money"
+                    printError("Password incorrect!\n")
+                    return "password_incorrect"
                 end
             else
-                printError("Password incorrect!\n")
-                return "password_incorrect"
+                printError("Second account doesn't exists!\n")
+                return "second_account_doesnt_exists"
             end
         else
             printError("Second account doesn't exists!\n")
