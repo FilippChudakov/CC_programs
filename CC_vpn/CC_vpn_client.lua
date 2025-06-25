@@ -11,10 +11,10 @@ function rednet.send(receiver, message, protocol)
 end
 
 function rednet.receive(protocol_filter, timeout)
-    local id, msg, protocol = original_rednet_receive(protocol_filter, timeout)
+    local id, msg, protocol = original_rednet_receive(nil, timeout)
     if protocol == "VPN" then
         savemsg = msg
-        id, msg, protocol = original_rednet_receive(nil, 1)
+        local id, msg, protocol = original_rednet_receive(nil, 1)
         return tonumber(msg), savemsg, protocol
     else
         return id, msg, protocol
