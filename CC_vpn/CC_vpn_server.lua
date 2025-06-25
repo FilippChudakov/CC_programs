@@ -29,18 +29,19 @@ function MessageHandler()
                     print("Redirecting message...")
                     rednet.send(target_id, message, target_protocol)
                     last_session_id = session_id
+                    print("Complete!\n")
                     ResetSavings()
                     break
                 end
             else
-                printError("Message is too late")
+                printError("Message is too late\n")
                 break
             end
         end
     elseif protocol ~= "VPN" then
         print("Sending to: "..last_session_id)
         rednet.send(last_session_id, msg, "VPN")
-        print("From id: "..id)
+        print("From id: "..id.."\n")
         rednet.send(last_session_id, id, protocol)
         ResetSavings()
     end
