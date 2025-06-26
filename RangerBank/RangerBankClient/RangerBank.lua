@@ -3,7 +3,17 @@ local Network = dofile("APIS/Network.lua")
 local Short = dofile("APIS/ShortCuts.lua")
 
 Network.open()
+
 UI.BGtheme = colors.blue
+UI.button_Theme["bg"] = colors.green
+UI.button_Theme["light_bg"] = colors.lime
+UI.button_Theme["text"] = colors.black
+UI.button_array_Theme["border"] = colors.gray
+UI.button_array_Theme["light_border"] = colors.lime
+UI.button_array_Theme["bg"] = colors.green
+UI.button_array_Theme["light_bg"] = colors.lime
+UI.button_array_Theme["text"] = colors.black
+UI.button_array_Theme["infield"] = colors.black
 
 local logregScreen = UI.createScreen()
 local registerScreen = UI.createScreen()
