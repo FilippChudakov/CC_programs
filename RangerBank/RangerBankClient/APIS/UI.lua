@@ -8,6 +8,17 @@ UI.screens = {}
 UI.currentScreen = 1
 UI.running = false
 UI.BGtheme = colors.black
+UI.button_Theme = {}
+UI.button_Theme["bg"] = colors.black
+UI.button_Theme["light_bg"] = colors.gray
+UI.button_Theme["text"] = colors.white
+UI.button_array_Theme = {}
+UI.button_array_Theme["border"] = colors.gray
+UI.button_array_Theme["light_border"] = colors.lightGray
+UI.button_array_Theme["bg"] = colors.black
+UI.button_array_Theme["light_bg"] = colors.gray
+UI.button_array_Theme["text"] = colors.white
+UI.button_array_Theme["infield"] = colors.black
 
 
 function UI.exit()
@@ -74,7 +85,10 @@ function UI.createButton(text, x, y, w, h, onClick)
         width = w or (#text + 4),
         height = h or 3,
         onClick = onClick,
-        selected = false
+        selected = false,
+        bgColor = UI.button_Theme["bg"],
+        lightbgColor = UI.button_Theme["light_bg"],
+        textColor = UI.button_Theme["text"]
     }
 end
 
@@ -112,7 +126,13 @@ function UI.createButtonArray(x, y, w, h, filePath, visibleRows, onClickHandler)
         selected = false,
         isNavigatingInside = false,
         internalSelected = 1,
-        onClickHandler = onClickHandler -- Сохраняем обработчик в самом массиве
+        onClickHandler = onClickHandler,
+        borderColor = UI.button_array_Theme["border"],
+        lightborderColor = UI.button_array_Theme["light_border"],
+        bgColor = UI.button_array_Theme["bg"],
+        lightbgColor = UI.button_array_Theme["light_bg"],
+        textColor = UI.button_array_Theme["text"],
+        infieldColor = UI.button_array_Theme["infield"]
     }
 end
 
@@ -178,7 +198,7 @@ function UI.draw(buttons, inputs, labels, buttonArrays)
     
     -- Отрисовка кнопок
     for i, btn in ipairs(buttons or {}) do
-        local bg = btn.selected and colors.lime or colors.green
+        local bg = btn.selected and btn.lightbgColor or btn.bgColor
         term.setBackgroundColor(bg)
         
         for dy = 0, btn.height - 1 do
@@ -187,7 +207,7 @@ function UI.draw(buttons, inputs, labels, buttonArrays)
         end
         
         term.setBackgroundColor(bg)
-        term.setTextColor(colors.black)
+        term.setTextColor(btn.textColor)
         term.setCursorPos(
             btn.x + math.floor((btn.width - #btn.text)/2),
             btn.y + math.floor(btn.height/2)
@@ -243,7 +263,7 @@ function UI.draw(buttons, inputs, labels, buttonArrays)
 
         -- Отрисовка массивов кнопок
     for i, array in ipairs(buttonArrays or {}) do
-        local border = array.selected and colors.lime or colors.gray
+        local border = array.selected and array.lightborderColor or array.borderColor
         term.setBackgroundColor(border)
 
         -- Рамка
@@ -253,7 +273,7 @@ function UI.draw(buttons, inputs, labels, buttonArrays)
         end
 
         -- Внутренняя область
-        term.setBackgroundColor(colors.black)
+        term.setBackgroundColor(array.infieldColor)
         for dy = 1, array.height - 2 do
             term.setCursorPos(array.x + 1, array.y + dy)
             term.write((" "):rep(array.width - 2))
@@ -267,14 +287,14 @@ function UI.draw(buttons, inputs, labels, buttonArrays)
                 local btnY = array.y + 1 + (i-1)
 
                 if btnY < array.y + array.height - 1 then
-                    local bg = (btn.selected and colors.lime) or 
+                    local bg = (btn.selected and array.lightbgColor) or 
                                (array.isNavigatingInside and btnIndex == array.internalSelected and colors.orange) or 
-                               colors.green
+                               array.bgColor
                     term.setBackgroundColor(bg)
                     term.setCursorPos(array.x + 1, btnY)
                     term.write((" "):rep(array.width - 2))
 
-                    term.setTextColor(colors.black)
+                    term.setTextColor(array.textColor)
                     term.setCursorPos(
                         array.x + math.floor((array.width - #btn.text)/2),
                         btnY
