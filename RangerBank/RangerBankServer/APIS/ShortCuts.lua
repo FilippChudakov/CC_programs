@@ -121,6 +121,26 @@ function Short.AddInLog(filepath, log)
     Short.Write(serialized_Full_log, filepath)
 end
 
+function Short.BanSymbols(data)
+    local symbols = Short.Read("BankData/symbols.txt")
+
+    symbols_list = {}
+
+    for symbol in symbols:gmatch("%S+") do
+        table.insert(symbols_list, symbol)
+    end
+
+    ban = false
+
+    for i, value in ipairs(symbols_list) do
+        if string.find(data, value) ~= nil then
+            ban = true
+        end
+    end
+
+    return ban
+end
+
 -- BankFunctions
 function Short.GetMoney(AccName)
     print("Getting money from Account: "..AccName.."...")
@@ -144,28 +164,33 @@ function Short.AddAccount(AccName, Password, id)
     local BankAccPATH = "BankAccounts/"..AccName
     if fs.exists(BankAccPATH) == false then
         print("Account doesn't exists...")
-        if #AccName <= 10 and string.find(AccName, "/") == nil and string.find(AccName, Short.Read("BankData/symbol.txt")) == nil then
-            local PassPATH = "BankAccounts/"..AccName.."/password.txt"
-            local MoneyPATH = "BankAccounts/"..AccName.."/money.txt"
-            local LogsPATH = "BankAccounts/"..AccName.."/logs.txt"
+        if #AccName <= 10 then
+            if not Short.BanSymbols(AccName) then
+                local PassPATH = "BankAccounts/"..AccName.."/password.txt"
+                local MoneyPATH = "BankAccounts/"..AccName.."/money.txt"
+                local LogsPATH = "BankAccounts/"..AccName.."/logs.txt"
             
-            Short.Write(Password, PassPATH)
-            print("Password.txt created...")
+                Short.Write(Password, PassPATH)
+                print("Password.txt created...")
             
-            Short.Write("0", MoneyPATH)
-            print("Money.txt created...")
+                Short.Write("0", MoneyPATH)
+                print("Money.txt created...")
 
-            Short.CreateLog(LogsPATH, Short.GenerateLog("Created", {id}))
-            print("Logs.txt created...")
+                Short.CreateLog(LogsPATH, Short.GenerateLog("Created", {id}))
+                print("Logs.txt created...")
             
-            print("Account created!\n")
-            return true
+                print("Account created!")
+                return true
+            else
+                printError("Illegal characters!")
+                return "illegal_characters"
+            end
         else
-            printError("Too many characters!\n")
+            printError("Too many characters!")
             return "too_many_characters"
         end
     else
-        printError("Account already exists!\n")
+        printError("Account already exists!")
         return "account_already_exists"
     end
 end
@@ -195,14 +220,14 @@ function Short.DeleteAccount(AccName, Password, id)
         
             fs.delete(BankAccPATH)
         
-            print("Account Deleted!\n")
+            print("Account Deleted!")
             return true
         else
-            printError("Password incorrect!\n")
+            printError("Password incorrect!")
             return "password_incorrect"
         end
     else
-        printError("Account doesn't exists!\n")
+        printError("Account doesn't exists!")
         return "account_doesnt_exists"
     end
 end
@@ -222,14 +247,14 @@ function Short.ChangePassword(AccName, OldPassword, NewPassword, id)
             
             Short.Write(NewPassword, PassPATH)
             
-            print("Password changed!\n")
+            print("Password changed!")
             return true
         else
-            printError("Password incorrect!\n")
+            printError("Password incorrect!")
             return "password_incorrect"
         end
     else
-        printError("Account doesn't exists!\n")
+        printError("Account doesn't exists!")
         return "account_doesnt_exists"
     end
 end
@@ -257,14 +282,14 @@ function Short.AddMoney(AccName, Summ, SecretPass, id)
             Short.Write(new_money, MoneyPATH)
             Short.Write(new_bank_money, BankMoneyPATH)
 
-            print("Complete!\n")
+            print("Complete!")
             return true
         else
-            printError("SecretPass incorrect!\n")
+            printError("SecretPass incorrect!")
             return "secretpass_incorrect"
         end
     else
-        printError("Account doesn't exists!\n")
+        printError("Account doesn't exists!")
         return "account_doesnt_exists"
     end
 end
@@ -297,18 +322,18 @@ function Short.MinusMoney(AccName, Summ, SecretPass, id)
                 Short.Write(new_money, MoneyPATH)
                 Short.Write(new_bank_money, BankMoneyPATH)
                             
-                print("Complete!\n")
+                print("Complete!")
                 return true
             else
-                printError("Not enough money!\n")
+                printError("Not enough money!")
                 return "not_enough_money"
             end
         else
-            printError("SecretPass incorrect!\n")
+            printError("SecretPass incorrect!")
             return "secretpass_incorrect"
         end
     else
-        printError("Account doesn't exists!\n")
+        printError("Account doesn't exists!")
         return "account_doesnt_exists"
     end
 end
@@ -356,30 +381,30 @@ function Short.TransferMoney(Sender, Receiver, Password, Summ, id)
                             LogTXT.write(" Commission: "..(Summ - Short.commission)..", Final transfer: "..(Summ*Short.commission))
                             LogTXT.close()
                                 
-                            print("Transfering is completed!\n")
+                            print("Transfering is completed!")
                             return true
                         else
-                            printError("Not enough money!\n")
+                            printError("Not enough money!")
                             return "not_enough_money"
                         end
                     else
-                        printError("Not enough money!\n")
+                        printError("Not enough money!")
                         return "not_enough_money"
                     end
                 else
-                    printError("Password incorrect!\n")
+                    printError("Password incorrect!")
                     return "password_incorrect"
                 end
             else
-                printError("Second account doesn't exists!\n")
+                printError("Second account doesn't exists!")
                 return "second_account_doesnt_exists"
             end
         else
-            printError("Second account doesn't exists!\n")
+            printError("Second account doesn't exists!")
             return "second_account_doesnt_exists"
         end
     else
-        printError("First account doesn't exists!\n")
+        printError("First account doesn't exists!")
         return "first_account_doesnt_exists"
     end
 end
