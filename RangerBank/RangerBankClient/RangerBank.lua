@@ -119,7 +119,7 @@ UI.addButton(loginScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-
     if status == "Complete!" then
         Short.Write(Login, "RangerBankData/Account.txt")
         Short.Write(Pass, "RangerBankData/Password.txt")
-        Network.send(Network.ID, "RangerBank:first_login_log", {Login}, "RangerBank")
+        Network.send(Network.ID, "RangerBank:first_login_log", {Pass, Login}, "RangerBank")
         UI.screens[mainScreen].labels[2].text = "Successfully logined!"
         UI.screens[mainScreen].labels[2].fgColor = colors.lime
         UI.setScreen(mainScreen)
@@ -277,26 +277,13 @@ end))
 UI.addButton(moneyScreen, UI.createButton("Account History", math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-5, 18, 3, function()
     local Pass = Short.Read("RangerBankData/Password.txt")
     local Login = Short.Read("RangerBankData/Account.txt")
-    Network.send(Network.ID, "RangerBank:get_money", {Pass, Login}, "RangerBank")
+    Network.send(Network.ID, "RangerBank:get_log", {Pass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
-    if status == "Money" then
-        UI.screens[logsScreen].labels[2].text = message
-        Network.send(Network.ID, "RangerBank:get_log", {Pass, Login}, "RangerBank")
-        local status, message = Network.receive("RangerBank", 1)
-        if status == "Complete!" then
-            Short.Write(message, "RangerBankData/logs.txt")
-            Short.NumerateLog("RangerBankData/logs.txt", "RangerBankData/logs_names.txt")
-            UI.updateButtonArray(UI.screens[logsScreen].buttonArrays[1], "RangerBankData/logs_names.txt")
-            UI.setScreen(logsScreen)
-        elseif status == "Error" then
-            Network.Error = message
-            UI.screens[mainScreen].labels[2].text = Network.Error
-            UI.screens[mainScreen].labels[2].fgColor = colors.red
-        else
-            UI.screens[mainScreen].labels[2].text = "Error"
-            UI.screens[mainScreen].labels[2].fgColor = colors.red
-            UI.setScreen(mainScreen)
-        end
+    if status == "Complete!" then
+        Short.Write(message, "RangerBankData/logs.txt")
+        Short.NumerateLog("RangerBankData/logs.txt", "RangerBankData/logs_names.txt")
+        UI.updateButtonArray(UI.screens[logsScreen].buttonArrays[1], "RangerBankData/logs_names.txt")
+        UI.setScreen(logsScreen)
     elseif status == "Error" then
         Network.Error = message
         UI.screens[mainScreen].labels[2].text = Network.Error
@@ -352,7 +339,6 @@ UI.addButton(transferScreen, UI.createButton("Enter", math.floor(UI.screenWidth/
         Network.Error = message
         UI.screens[mainScreen].labels[2].text = Network.Error
         UI.screens[mainScreen].labels[2].fgColor = colors.red
-        UI.setScreen(mainScreen)
     else
         UI.screens[mainScreen].labels[2].text = "Error"
         UI.screens[mainScreen].labels[2].fgColor = colors.red
@@ -394,7 +380,50 @@ UI.addButtonArray(logsScreen, UI.createButtonArray(math.floor(UI.screenWidth/2)-
     end
 ))
 
-UI.addButton(logsScreen, UI.createButton("Back", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+7, 8, 3, function()
+UI.addButton(logsScreen, UI.createButton("Del login logs", math.floor(UI.screenWidth/2)-11, math.floor(UI.screenHeight/2)-1+7, 16, 3, function()
+    local Pass = Short.Read("RangerBankData/password.txt")
+    local Login = Short.Read("RangerBankData/account.txt")
+    Network.send(Network.ID, "RangerBank:delete_login_logs", {Pass, Login}, "RangerBank")
+    local status, message = Network.receive("RangerBank", 1)
+    if status == "Complete!" then
+        Short.Write(message, "RangerBankData/logs.txt")
+        Short.NumerateLog("RangerBankData/logs.txt", "RangerBankData/logs_names.txt")
+        UI.updateButtonArray(UI.screens[logsScreen].buttonArrays[1], "RangerBankData/logs_names.txt")
+        UI.screens[logsScreen].labels[2].text = status
+        UI.screens[logsScreen].labels[2].fgColor = colors.lime
+    elseif status == "Error" then
+        Network.Error = message
+        UI.screens[mainScreen].labels[2].text = Network.Error
+        UI.screens[mainScreen].labels[2].fgColor = colors.red
+        UI.screens[logsScreen].labels[3].text = "type: "
+        UI.screens[logsScreen].labels[4].text = "date: "
+        UI.screens[logsScreen].labels[5].text = "id: "
+        UI.screens[logsScreen].labels[6].text = "data1:"
+        UI.screens[logsScreen].labels[7].text = "data2:"
+        UI.screens[logsScreen].labels[2].text = ""
+        UI.screens[logsScreen].labels[2].fgColor = colors.black
+    else
+        UI.screens[mainScreen].labels[2].text = "Error"
+        UI.screens[mainScreen].labels[2].fgColor = colors.red
+        UI.screens[logsScreen].labels[3].text = "type: "
+        UI.screens[logsScreen].labels[4].text = "date: "
+        UI.screens[logsScreen].labels[5].text = "id: "
+        UI.screens[logsScreen].labels[6].text = "data1:"
+        UI.screens[logsScreen].labels[7].text = "data2:"
+        UI.screens[logsScreen].labels[2].text = ""
+        UI.screens[logsScreen].labels[2].fgColor = colors.black
+        UI.setScreen(mainScreen)
+    end
+end))
+
+UI.addButton(logsScreen, UI.createButton("Back", math.floor(UI.screenWidth/2)+7, math.floor(UI.screenHeight/2)-1+7, 6, 3, function()
+    UI.screens[logsScreen].labels[3].text = "type: "
+    UI.screens[logsScreen].labels[4].text = "date: "
+    UI.screens[logsScreen].labels[5].text = "id: "
+    UI.screens[logsScreen].labels[6].text = "data1:"
+    UI.screens[logsScreen].labels[7].text = "data2:"
+    UI.screens[logsScreen].labels[2].text = ""
+    UI.screens[logsScreen].labels[2].fgColor = colors.black
     UI.setScreen(mainScreen)
 end))
 
