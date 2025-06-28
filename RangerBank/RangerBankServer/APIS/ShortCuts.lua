@@ -99,7 +99,7 @@ end
 
 function Short.GenerateLog(typed, data)
     local log = {}
-    local date = os.date("%Y-%m-%d")
+    local date = os.date("%Y-%m-%d %H:%M")
 
     local serialized_data = Short.serialize(data)
 
@@ -119,6 +119,26 @@ function Short.AddInLog(filepath, log)
 
     local serialized_Full_log = Short.serialize(Full_log)
     Short.Write(serialized_Full_log, filepath)
+end
+
+function Short.DeleteFullLog(filepath, typed)
+    local file = Short.Read(filepath)
+    local Full_log = Short.deserialize(file)
+
+    local new_log = {}
+    local find = false
+
+    for i, value in ipairs(Full_log) do
+        if typed ~= Short.deserialize(value)["type"] then
+            table.insert(new_log, value)
+        else
+            find = true
+        end
+    end
+
+    Short.Write(Short.serialize(new_log), filepath)
+
+    return find
 end
 
 function Short.BanSymbols(data)
@@ -339,6 +359,7 @@ function Short.MinusMoney(AccName, Summ, SecretPass, id)
 end
 
 function Short.TransferMoney(Sender, Receiver, Password, Summ, id)
+    Summ = math.floor(Summ * 100) / 100
     print("Transferring money from account: "..Sender.." to account: "..Receiver.."...")
     local BankFirstAccPATH = "BankAccounts/"..Sender
     if fs.exists(BankFirstAccPATH) == true then
@@ -377,8 +398,8 @@ function Short.TransferMoney(Sender, Receiver, Password, Summ, id)
                             Short.Write(new_bank_money, BankMoneyPATH)
 
                             local LogTXT = fs.open("BankData/TransferLogs.txt", "a")
-                            LogTXT.write("\nTransferring "..Summ.." from account: "..Sender.." to account: "..Receiver.." id: "..id)
-                            LogTXT.write(" Commission: "..(Summ - Short.commission)..", Final transfer: "..(Summ*Short.commission))
+                            LogTXT.write("Transferring "..Summ.." from account: "..Sender.." to account: "..Receiver.." id: "..id)
+                            LogTXT.write(" Commission: "..(1-Short.commission)..", Final transfer: "..(Summ*Short.commission).."\n")
                             LogTXT.close()
                                 
                             print("Transfering is completed!")
