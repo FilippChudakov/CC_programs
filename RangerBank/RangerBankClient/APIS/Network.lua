@@ -4,7 +4,7 @@ Network.ID = 0
 Network.Error = nil
 
 function Network.version()
-    return "RangerBank 2.5"
+    return "RangerBank 2.6"
 end
 
 function Network.changelog(version)
@@ -14,6 +14,8 @@ function Network.changelog(version)
         return "Fixed some bugs"
     elseif version == "2.5" then
         return "Reworked rednet use"
+    elseif version == "2.6" then
+        return "Fixed some bugs and add new button"
     else
         return "not a version"
     end
@@ -24,7 +26,7 @@ function Network.open()
 end
 
 function Network.close()
-    peripheral.find("modem", rednet.open)
+    peripheral.find("modem", rednet.close)
 end
 
 function Network.send(ID, SendId, Messages, Protocol)
@@ -54,7 +56,7 @@ end
 
 function Network.BankTable(SendId, data)
     local new_data = {SendId}
-    if SendId == "RangerBank:get_money" or SendId == "RangerBank:login" or SendId == "RangerBank:register" or SendId ==  "RangerBank:delete_account" or SendId == "RangerBank:get_log" then
+    if SendId == "RangerBank:get_money" or SendId == "RangerBank:login" or SendId == "RangerBank:register" or SendId == "RangerBank:delete_account" or SendId == "RangerBank:get_log" or SendId == "RangerBank:first_login_log" or SendId == "RangerBank:delete_login_logs" then
         new_data["password"] = data[1]
         new_data["account"] = data[2]
     elseif SendId == "RangerBank:minus_money" or SendId == "RangerBank:add_money" then
@@ -70,8 +72,6 @@ function Network.BankTable(SendId, data)
         new_data["summ"] = data[2]
         new_data["receiver"] = data[3]
         new_data["account"] = data[4]
-    elseif SendId == "RangerBank:first_login_log" then
-        new_data["account"] = data[1]
     elseif SendId == "RangerBank:OFF" then
         new_data["secret_pass"] = data[1]
     end
