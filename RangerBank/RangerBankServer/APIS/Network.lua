@@ -3,7 +3,7 @@ local Short = dofile("APIS/ShortCuts.lua")
 local Network = {}
 
 function Network.version()
-    return {"RangerBankServer 2.5", "Reworked rednet use"}
+    return {"RangerBankServer 2.6", "Fixed some bugs"}
 end
 
 function Network.changelog(version)
@@ -13,6 +13,8 @@ function Network.changelog(version)
         return "Fixed some bugs"
     elseif version == "2.5" then
         return "Reworked rednet use"
+    elseif version == "2.6" then
+        return "Fixed some bugs"
     else
         return "not a version"
     end
@@ -23,7 +25,7 @@ function Network.open()
 end
 
 function Network.close()
-    peripheral.find("modem", rednet.open)
+    peripheral.find("modem", rednet.close)
 end
 
 function Network.send(SendId, Message, Protocol, id)
@@ -52,7 +54,9 @@ function Network.MessageHandler()
     local session_id, message = rednet.receive("RangerBank")
 
     if session_id ~= nil and message ~= nil then
+
         if message[1] == "ping" then
+            print("id: "..session_id.." ping")
             rednet.send(session_id, "pong")
 
         elseif message[1] == "RangerBank:get_money" then
@@ -195,8 +199,19 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:first_login_log" then
             print("Log login...")
 
+            local AccountPATH = "BankAccounts/"..message["account"]
+            local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
-            Short.AddInLog(logPATH, Short.GenerateLog("Login", {session_id}))
+
+            if fs.exists(AccountPATH) then
+                if Short.Read(PassPATH) == message["password"] then
+                    Short.AddInLog(logPATH, Short.GenerateLog("Login", {session_id}))
+                else
+                    Network.send("2", "Wrong password!", "RangerBank", session_id)
+                end
+            else
+                Network.send("2", "Account doesnt exists!", "RangerBank", session_id)
+            end
 
         elseif message[1] == "RangerBank:get_log" then
             print("Get log...")
@@ -208,6 +223,28 @@ function Network.MessageHandler()
             if fs.exists(AccountPATH) then
                 local pass = Short.Read(PassPATH)
                 if pass == message["password"] then
+                    local log = Short.Read(logPATH)
+                    Network.send("1", log, "RangerBank", session_id)
+                else
+                    Network.send("2", "Wrong password!", "RangerBank", session_id)
+                end
+            else
+                Network.send("2", "Account doesnt exists!", "RangerBank", session_id)
+            end
+        
+        elseif message[1] == "RangerBank:delete_login_logs" then
+            print("deleting logs...")
+
+            local AccountPATH = "BankAccounts/"..message["account"]
+            local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
+            local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
+
+            if fs.exists(AccountPATH) then
+                if Short.Read(PassPATH) == message["password"] then
+                    local status = Short.DeleteFullLog(logPATH, "Login")
+                    if status then
+                        Short.AddInLog(logPATH, Short.GenerateLog("DLL", {session_id}))
+                    end
                     local log = Short.Read(logPATH)
                     Network.send("1", log, "RangerBank", session_id)
                 else
