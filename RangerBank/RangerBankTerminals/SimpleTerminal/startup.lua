@@ -35,17 +35,17 @@ UI.addButton(screen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, ma
     if status == "Complete!" then
         UI.screens[screen].labels[2].text = message
         UI.screens[screen].labels[2].fgColor = colors.lime
-        UI.setScreen(screen)
     elseif status == "Error" then
         Network.Error = message
         UI.screens[screen].labels[2].text = Network.Error
         UI.screens[screen].labels[2].fgColor = colors.red
-        UI.setScreen(screen)
     else
         UI.screens[screen].labels[2].text = "Error"
         UI.screens[screen].labels[2].fgColor = colors.red
-        UI.setScreen(screen)
     end
+    UI.screens[screen].inputs[1].text = ""
+    UI.screens[screen].inputs[2].text = ""
+    UI.screens[screen].inputs[3].text = ""
 end))
 
 UI.addButton(screen, UI.createButton("Exit", 0, UI.screenHeight-1, 8, 3, function()
