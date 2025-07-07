@@ -280,6 +280,7 @@ function Short.ChangePassword(AccName, OldPassword, NewPassword, id)
 end
 
 function Short.AddMoney(AccName, Summ, SecretPass, id)
+    Summ = math.floor(Summ)
     print("Adding money for account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
     if fs.exists(BankAccPATH) == true then
@@ -289,21 +290,26 @@ function Short.AddMoney(AccName, Summ, SecretPass, id)
         local Secret = Short.Read(SecretPATH)
         
         if SecretPass == Secret then
-            print("SecretPass correct...")
-            local MoneyPATH = "BankAccounts/"..AccName.."/money.txt"
-            local BankMoneyPATH = "BankData/money.txt"
+            if Summ > 0 then
+                print("SecretPass correct...")
+                local MoneyPATH = "BankAccounts/"..AccName.."/money.txt"
+                local BankMoneyPATH = "BankData/money.txt"
     
-            local money = Short.Read(MoneyPATH)
-            local bank_money = Short.Read(BankMoneyPATH)
+                local money = Short.Read(MoneyPATH)
+                local bank_money = Short.Read(BankMoneyPATH)
 
-            local new_money = tonumber(money) + Summ
-            local new_bank_money = tonumber(bank_money) - Summ
+                local new_money = tonumber(money) + Summ
+                local new_bank_money = tonumber(bank_money) - Summ
 
-            Short.Write(new_money, MoneyPATH)
-            Short.Write(new_bank_money, BankMoneyPATH)
+                Short.Write(new_money, MoneyPATH)
+                Short.Write(new_bank_money, BankMoneyPATH)
 
-            print("Complete!")
-            return true
+                print("Complete!")
+                return true
+            else
+                printError("Not enough money!")
+                return "not_enough_money"
+            end
         else
             printError("SecretPass incorrect!")
             return "secretpass_incorrect"
@@ -315,6 +321,7 @@ function Short.AddMoney(AccName, Summ, SecretPass, id)
 end
 
 function Short.MinusMoney(AccName, Summ, SecretPass, id)
+    Summ = math.floor(Summ)
     print("Minusing money for account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
     if fs.exists(BankAccPATH) == true then
@@ -330,20 +337,25 @@ function Short.MinusMoney(AccName, Summ, SecretPass, id)
             
             local money = Short.Read(MoneyPATH)
 
-            if tonumber(money) > tonumber(Summ) then
-                local BankMoneyPATH = "BankData/money.txt"
+            if Summ > 0 then
+                if tonumber(money) > tonumber(Summ) then
+                    local BankMoneyPATH = "BankData/money.txt"
 
-                local money = Short.Read(MoneyPATH)
-                local bank_money = Short.Read(BankMoneyPATH)
+                    local money = Short.Read(MoneyPATH)
+                    local bank_money = Short.Read(BankMoneyPATH)
 
-                local new_money = tonumber(money) - Summ
-                local new_bank_money = tonumber(bank_money) + Summ
+                    local new_money = tonumber(money) - Summ
+                    local new_bank_money = tonumber(bank_money) + Summ
 
-                Short.Write(new_money, MoneyPATH)
-                Short.Write(new_bank_money, BankMoneyPATH)
+                    Short.Write(new_money, MoneyPATH)
+                    Short.Write(new_bank_money, BankMoneyPATH)
                             
-                print("Complete!")
-                return true
+                    print("Complete!")
+                    return true
+                else
+                    printError("Not enough money!")
+                    return "not_enough_money"
+                end
             else
                 printError("Not enough money!")
                 return "not_enough_money"
