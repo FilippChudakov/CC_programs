@@ -151,7 +151,8 @@ UI.addButton(diamond, UI.createButton("Get Diamonds", math.floor(UI.screenWidth/
     local Pass = UI.screens[diamond].inputs[2].text
     local money = UI.screens[diamond].inputs[3].text
     local SecretPass = Short.Read("RangerBankData/SecretPass.txt")
-    local status, message = Network.send(Network.ID, "RangerBank:login", {Pass, Login}, "RangerBank")
+    Network.send(Network.ID, "RangerBank:login", {Pass, Login}, "RangerBank")
+    local status, message = Network.receive("RangerBank", 1)
     if status == "Complete!" then
         Network.send(Network.ID, "RangerBank:minus_money", {Login, money, SecretPass}, "RangerBank")
         status, message = Network.receive("RangerBank", 1)
