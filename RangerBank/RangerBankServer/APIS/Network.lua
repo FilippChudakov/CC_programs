@@ -151,6 +151,8 @@ function Network.MessageHandler()
                 Network.send("1", "Complete!", "RangerBank", session_id)
             elseif result == "secretpass_incorrect" then
                 Network.send("2", "SecretPass incorrect!", "RangerBank", session_id)
+            elseif result == "not_enough_money" then
+                Network.send("2", "Not enough money!", "RangerBank", session_id)
             elseif result == "account_doesnt_exists" then
                 Network.send("2", "Account doesn't exists!", "RangerBank", session_id)
             else
