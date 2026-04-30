@@ -363,18 +363,24 @@ UI.addButtonArray(logsScreen, UI.createButtonArray(math.floor(UI.screenWidth/2)-
         
         local log = Short.deserialize(logEntry)
             
-        if log.type ~= "Transfer" and log.type ~= "Receive" then
-            UI.screens[logsScreen].labels[3].text = "type: "..log.type
-            UI.screens[logsScreen].labels[4].text = "date: "..log.date
-            UI.screens[logsScreen].labels[5].text = "id: "..Short.deserialize(log.data)[1]
-            UI.screens[logsScreen].labels[6].text = "data1:"
-            UI.screens[logsScreen].labels[7].text = "data2:"
-        else
+        if log.type == "Transfer" or log.type == "Receive" then
             UI.screens[logsScreen].labels[3].text = "type: "..log.type
             UI.screens[logsScreen].labels[4].text = "date: "..log.date
             UI.screens[logsScreen].labels[5].text = "id: "..Short.deserialize(log.data)[3]
             UI.screens[logsScreen].labels[6].text = "data1: "..Short.deserialize(log.data)[1]
             UI.screens[logsScreen].labels[7].text = "data2: "..Short.deserialize(log.data)[2]
+        elseif log.type == "Add money" or log.type == "Minus money" then
+            UI.screens[logsScreen].labels[3].text = "type: "..log.type
+            UI.screens[logsScreen].labels[4].text = "date: "..log.date
+            UI.screens[logsScreen].labels[5].text = "id:"
+            UI.screens[logsScreen].labels[6].text = "data1: "..Short.deserialize(log.data)[1]
+            UI.screens[logsScreen].labels[7].text = "data2:"
+        else
+            UI.screens[logsScreen].labels[3].text = "type: "..log.type
+            UI.screens[logsScreen].labels[4].text = "date: "..log.date
+            UI.screens[logsScreen].labels[5].text = "id: "..Short.deserialize(log.data)[3]
+            UI.screens[logsScreen].labels[6].text = "data1:"
+            UI.screens[logsScreen].labels[7].text = "data2:"
         end
 
     end
