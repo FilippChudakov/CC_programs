@@ -133,8 +133,8 @@ function Network.MessageHandler()
 
             local result = Short.ChangePassword(message["account"], message["password"], message["new_pass"], session_id)
             if result == true then
-                Network.send("1", "Password changed!", "RangerBank", session_id)
                 Short.AddInLog(LogsPATH, Short.GenerateLog("Change pass", {session_id}))
+                Network.send("1", "Password changed!", "RangerBank", session_id)
             elseif result == "password_incorrect" then
                 Network.send("2", "Password incorrect!", "RangerBank", session_id)
             elseif result == "account_doesnt_exists" then
@@ -146,8 +146,11 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:add_money" then
             print("adding money...")
 
+            local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
+
             local result = Short.AddMoney(message["account"], message["summ"], message["secret_pass"], session_id)
             if result == true then
+                Short.AddInLog(LogsPATH, Short.GenerateLog("Add money", {message["summ"]}))
                 Network.send("1", "Complete!", "RangerBank", session_id)
             elseif result == "secretpass_incorrect" then
                 Network.send("2", "SecretPass incorrect!", "RangerBank", session_id)
@@ -162,8 +165,11 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:minus_money" then
             print("minusing money...")
 
+            local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
+
             local result = Short.MinusMoney(message["account"], message["summ"], message["secret_pass"], session_id)
             if result == true then
+                Short.AddInLog(LogsPATH, Short.GenerateLog("Minus money", {message["summ"]}))
                 Network.send("1", "Complete!", "RangerBank", session_id)
             elseif result == "not_enough_money" then
                 Network.send("2", "Not enough money!", "RangerBank", session_id)
@@ -276,3 +282,4 @@ function Network.MessageHandler()
 end
 
 return Network
+
