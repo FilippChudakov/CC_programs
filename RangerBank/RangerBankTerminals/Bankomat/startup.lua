@@ -7,6 +7,13 @@ local version = Network.version()
 
 Network.open()
 
+local pass = Short.Read("RangerBankData/SecretPass.txt")
+if not pass or pass == "" then
+    term.clear()
+    term.setCursorPos(1,1)
+    print("Error: SecretPass not found or corrupted.")
+    return 
+end
 
 -- Find peripheral devices
 local function findPeripheral(periphType)
@@ -35,7 +42,7 @@ end
 
 local function Move_money()
     local barrel, barrelName = findPeripheral("minecraft:barrel")
-    local chest, chestName = findPeripheral("minecraft:chest")
+    local chest, chestName = findPeripheral("supplementaries:safe")
     
     if not barrel or not chest then return false end
     
@@ -60,7 +67,7 @@ end
 
 local function Move_diamond(a)
     local barrel, barrelName = findPeripheral("minecraft:barrel")
-    local chest, chestName = findPeripheral("minecraft:chest")
+    local chest, chestName = findPeripheral("supplementaries:safe")
     
     if not barrel or not chest then return false end
     
@@ -85,8 +92,9 @@ local function Move_diamond(a)
         if amountToMove <= 0 then break end
     end
     
-    return amountToMove == 0 and totalMoved or false
+    return totalMoved
 end
+
 UI.BGtheme = colors.blue
 UI.button_Theme["bg"] = colors.green
 UI.button_Theme["light_bg"] = colors.lime
@@ -96,7 +104,7 @@ local screen = UI.createScreen()
 local diamond = UI.createScreen()
 local exit = UI.createScreen()
 
--- MainScreen
+-- CoinScreen
 
 UI.addLabel(screen, UI.createLabel(version, UI.screenWidth+1-#version, UI.screenHeight, colors.black, colors.blue))
 UI.addLabel(screen, UI.createLabel("", 1, 1, colors.black, colors.blue))
@@ -106,26 +114,30 @@ UI.addInput(screen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI
 UI.addButton(screen, UI.createButton("Add Coins", math.floor(UI.screenWidth/2)-5, math.floor(UI.screenHeight/2)+2, 11, 3, function()
     local Login = UI.screens[screen].inputs[1].text
     local SecretPass = Short.Read("RangerBankData/SecretPass.txt")
-    money = Get_money()
-    if money ~= false then
-        Network.send(Network.ID, "RangerBank:add_money", {Login, money, SecretPass}, "RangerBank")
+    
+    local movedCount = Move_money() 
+    
+    if movedCount and movedCount > 0 then
+        Network.send(Network.ID, "RangerBank:add_money", {Login, movedCount, SecretPass}, "RangerBank")
         local status, message = Network.receive("RangerBank", 1)
         if status == "Complete!" then
-            Move_money()
-            UI.screens[screen].labels[2].text = message.." add: "..money.." money"
+            UI.screens[screen].labels[2].text = message.." add: "..movedCount.." money"
             UI.screens[screen].labels[2].fgColor = colors.lime
         elseif status == "Error" then
+            Move_diamond(movedCount)
             Network.Error = message
-            UI.screens[screen].labels[2].text = Network.Error
+            UI.screens[screen].labels[2].text = Network.Error 
             UI.screens[screen].labels[2].fgColor = colors.red
         else
+            Move_diamond(movedCount)
             UI.screens[screen].labels[2].text = "Error"
             UI.screens[screen].labels[2].fgColor = colors.red
         end
     else
-        UI.screens[screen].labels[2].text = "Error"
+        UI.screens[screen].labels[2].text = "Error: Can not move diamonds!"
         UI.screens[screen].labels[2].fgColor = colors.red
     end
+    
     UI.screens[screen].inputs[1].text = "Enter Login"
     UI.screens[screen].inputs[1].cursorPos = 1
     UI.screens[screen].inputs[1].isPlaceholder = ""
@@ -149,33 +161,59 @@ UI.addInput(diamond, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(U
 UI.addButton(diamond, UI.createButton("Get Diamonds", math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)+5, 15, 3, function()
     local Login = UI.screens[diamond].inputs[1].text
     local Pass = UI.screens[diamond].inputs[2].text
-    local money = UI.screens[diamond].inputs[3].text
+    local requestedMoney = tonumber(UI.screens[diamond].inputs[3].text)
     local SecretPass = Short.Read("RangerBankData/SecretPass.txt")
+    
+    if not requestedMoney or requestedMoney <= 0 then
+        UI.screens[diamond].labels[2].text = "Invalid amount"
+        UI.screens[diamond].labels[2].fgColor = colors.red
+        return
+    end
+
     Network.send(Network.ID, "RangerBank:login", {Pass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
+    
     if status == "Complete!" then
-        Network.send(Network.ID, "RangerBank:minus_money", {Login, money, SecretPass}, "RangerBank")
-        status, message = Network.receive("RangerBank", 1)
-        if status == "Complete!" then
-            Move_diamond(money)
-            UI.screens[diamond].labels[2].text = message.." get: "..money.." diamonds"
-            UI.screens[diamond].labels[2].fgColor = colors.lime
-        elseif status == "Error" then
-            Network.Error = message
-            UI.screens[diamond].labels[2].text = Network.Error
-            UI.screens[diamond].labels[2].fgColor = colors.red
+        local actuallyMoved = Move_diamond(requestedMoney)
+        
+        if actuallyMoved and actuallyMoved > 0 then
+            Network.send(Network.ID, "RangerBank:minus_money", {Login, actuallyMoved, SecretPass}, "RangerBank")
+            status, message = Network.receive("RangerBank", 1)
+            
+            if status == "Complete!" then
+                UI.screens[diamond].labels[2].text = "Got: "..actuallyMoved.." diamonds"
+                UI.screens[diamond].labels[2].fgColor = colors.lime
+                
+                -- Если бочка заполнилась раньше времени
+                if actuallyMoved < requestedMoney then
+                    UI.screens[diamond].labels[2].text = "Partial: "..actuallyMoved.." (Barrel Full)"
+                    UI.screens[diamond].labels[2].fgColor = colors.yellow
+                end
+            else
+                -- Если банк не смог списать (техническая ошибка), возвращаем алмазы в сейф
+                local barrel, barrelName = findPeripheral("minecraft:barrel")
+                local chest, chestName = findPeripheral("supplementaries:safe")
+                if barrel and chest then
+                     -- Логика возврата: из бочки обратно в сейф
+                     local contents = barrel.list()
+                     for slot, item in pairs(contents) do
+                         if item.name == "minecraft:diamond" then
+                             barrel.pushItems(chestName, slot, item.count)
+                         end
+                     end
+                end
+                UI.screens[diamond].labels[2].text = "Bank Error: Items returned"
+                UI.screens[diamond].labels[2].fgColor = colors.red
+            end
         else
-            UI.screens[diamond].labels[2].text = "Error"
+            UI.screens[diamond].labels[2].text = "Error: Storage is full!"
             UI.screens[diamond].labels[2].fgColor = colors.red
         end
-    elseif status == "Error" then
-        Network.Error = message
-        UI.screens[diamond].labels[2].text = Network.Error
-        UI.screens[diamond].labels[2].fgColor = colors.red
     else
-        UI.screens[diamond].labels[2].text = "Error"
+        UI.screens[diamond].labels[2].text = message or "Login Error"
         UI.screens[diamond].labels[2].fgColor = colors.red
     end
+    
     UI.screens[diamond].inputs[1].text = "Enter Login"
     UI.screens[diamond].inputs[2].text = "Enter Pass"
     UI.screens[diamond].inputs[3].text = "Enter Summ"
