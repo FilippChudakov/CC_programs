@@ -378,7 +378,7 @@ UI.addButtonArray(logsScreen, UI.createButtonArray(math.floor(UI.screenWidth/2)-
         else
             UI.screens[logsScreen].labels[3].text = "type: "..log.type
             UI.screens[logsScreen].labels[4].text = "date: "..log.date
-            UI.screens[logsScreen].labels[5].text = "id: "..Short.deserialize(log.data)[3]
+            UI.screens[logsScreen].labels[5].text = "id: "..Short.deserialize(log.data)[1]
             UI.screens[logsScreen].labels[6].text = "data1:"
             UI.screens[logsScreen].labels[7].text = "data2:"
         end
