@@ -1,19 +1,33 @@
 Short = {}
 
+local hardwareKey = "K" .. tostring(os.getComputerID()) .. "B" 
+
+function Short.Crypt(data, key)
+    if not key or key == "" then return data end
+    local output = {}
+    for i = 1, #data do
+        local b = data:byte(i)
+        local k = key:byte((i - 1) % #key + 1)
+        output[i] = string.char(bit.bxor(b, k))
+    end
+    return table.concat(output)
+end
+
 function Short.Write(text, filepath)
+    -- Шифруем данные ключом компьютера перед записью[cite: 8]
+    local encrypted = Short.Crypt(tostring(text), hardwareKey)
     local file = fs.open(filepath, "w")
-    file.write(text)
+    file.write(encrypted)
     file.close()
 end
 
 function Short.Read(filepath)
     local file = fs.open(filepath, "r")
-    if file == nil then
-        return nil
-    end
+    if file == nil then return nil end
     local text = file.readAll()
     file.close()
-    return text
+    -- Дешифруем тем же ключом[cite: 8]
+    return Short.Crypt(text, hardwareKey)
 end
 
 function Short.serialize(t, indent, visited)
