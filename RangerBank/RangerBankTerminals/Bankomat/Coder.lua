@@ -1,5 +1,0 @@
-local Short = dofile("APIS/ShortCuts.lua")
-print("Enter your REAL SecretPass to encrypt it:")
-local realPass = read("*")
-Short.Write(realPass, "RangerBankData/SecretPass.txt")
-print("Success! Now SecretPass is bound to this computer ID.")
