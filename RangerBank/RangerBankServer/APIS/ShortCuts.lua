@@ -165,6 +165,12 @@ end
 function Short.GetMoney(AccName)
     print("Getting money from Account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
+
+    if Short.BanSymbols(AccName) then
+        printError("Illegal characters!")
+        return nil
+    end
+
     if fs.exists(BankAccPATH) then
         print("Account exists...")
         local MoneyPATH = "BankAccounts/"..AccName.."/money.txt"
@@ -182,10 +188,16 @@ end
 function Short.AddAccount(AccName, Password, id)
     print("Adding account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
+
+    if Short.BanSymbols(AccName) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
     if fs.exists(BankAccPATH) == false then
         print("Account doesn't exists...")
         if #AccName <= 10 then
-            if not Short.BanSymbols(AccName) then
+            if Password ~= nil then
                 local PassPATH = "BankAccounts/"..AccName.."/password.txt"
                 local MoneyPATH = "BankAccounts/"..AccName.."/money.txt"
                 local LogsPATH = "BankAccounts/"..AccName.."/logs.txt"
@@ -202,8 +214,8 @@ function Short.AddAccount(AccName, Password, id)
                 print("Account created!")
                 return true
             else
-                printError("Illegal characters!")
-                return "illegal_characters"
+                printError("Password is nil!")
+                return "nil_password"
             end
         else
             printError("Too many characters!")
@@ -218,6 +230,12 @@ end
 function Short.DeleteAccount(AccName, Password, id)
     print("Deleting Account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
+
+    if Short.BanSymbols(AccName) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
     if fs.exists(BankAccPATH) == true then
     
         print("Account exists...")
@@ -225,7 +243,7 @@ function Short.DeleteAccount(AccName, Password, id)
         
         local pass = Short.Read(PassPATH)
         
-        if pass == Password then
+        if pass == Password and Password ~= nil then
             print("Password correct...")
             local BankAccPATH = "BankAccounts/"..AccName
             local BankMoneyPATH = "BankData/money.txt"
@@ -255,13 +273,19 @@ end
 function Short.ChangePassword(AccName, OldPassword, NewPassword, id)
     print("Change password for account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
+
+    if Short.BanSymbols(AccName) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
     if fs.exists(BankAccPATH) == true then
         print("Account exists...")
         local PassPATH = "BankAccounts/"..AccName.."/password.txt"
         
         local pass = Short.Read(PassPATH)
         
-        if OldPassword == pass then
+        if OldPassword == pass and OldPassword ~= nil then
             print("Password correct...")
             local PassPATH = "BankAccounts/"..AccName.."/password.txt"
             
@@ -283,6 +307,12 @@ function Short.AddMoney(AccName, Summ, SecretPass, id)
     Summ = math.floor(Summ)
     print("Adding money for account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
+
+    if Short.BanSymbols(AccName) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
     if fs.exists(BankAccPATH) == true then
         print("Account exists...")
         local SecretPATH = "BankData/SecretPass.txt"
@@ -324,6 +354,12 @@ function Short.MinusMoney(AccName, Summ, SecretPass, id)
     Summ = math.floor(Summ)
     print("Minusing money for account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
+
+    if Short.BanSymbols(AccName) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
     if fs.exists(BankAccPATH) == true then
     
         print("Account exists...")
@@ -374,6 +410,17 @@ function Short.TransferMoney(Sender, Receiver, Password, Summ, id)
     Summ = math.floor(Summ * 100) / 100
     print("Transferring money from account: "..Sender.." to account: "..Receiver.."...")
     local BankFirstAccPATH = "BankAccounts/"..Sender
+
+    if Short.BanSymbols(Sender) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
+    if Short.BanSymbols(Receiver) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
     if fs.exists(BankFirstAccPATH) == true then
     
         print("First account exists...")
@@ -386,7 +433,7 @@ function Short.TransferMoney(Sender, Receiver, Password, Summ, id)
                 local PassPATH = "BankAccounts/"..Sender.."/password.txt"
                 local password = Short.Read(PassPATH)
                 
-                if Password == password then
+                if Password == password and Password ~= nil then
                     print("Password correct...")
                     local MoneyPATH1 = "BankAccounts/"..Sender.."/money.txt"
         
