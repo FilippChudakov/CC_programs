@@ -1,3 +1,4 @@
+os.pullEvent = os.pullEventRaw
 Network = dofile("APIS/Network.lua")
 
 Network.open()
