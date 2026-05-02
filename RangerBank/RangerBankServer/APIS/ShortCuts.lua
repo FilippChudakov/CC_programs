@@ -374,7 +374,7 @@ function Short.MinusMoney(AccName, Summ, SecretPass, id)
             local money = Short.Read(MoneyPATH)
 
             if Summ > 0 then
-                if tonumber(money) > tonumber(Summ) then
+                if tonumber(money) >= tonumber(Summ) then
                     local BankMoneyPATH = "BankData/money.txt"
 
                     local money = Short.Read(MoneyPATH)
