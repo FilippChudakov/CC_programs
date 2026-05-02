@@ -49,6 +49,34 @@ function Network.send(SendId, Message, Protocol, id)
     end
 end
 
+function send_error(result, id)
+    if result == true then
+        return false
+    elseif result == "account_already_exists" then
+        Network.send("2", "Account already exists!", "RangerBank", id)
+    elseif result == "too_many_characters" then
+        Network.send("2", "Too many characters!", "RangerBank", id)
+    elseif result == "illegal_characters" then
+        Network.send("2", "Illegal characters!", "RangerBank", d)
+    elseif result == "password_incorrect" then
+        Network.send("2", "Password incorrect!", "RangerBank", id)
+    elseif result == "account_doesnt_exists" then
+        Network.send("2", "Account doesn't exists!", "RangerBank", id)
+    elseif result == "secretpass_incorrect" then
+        Network.send("2", "SecretPass incorrect!", "RangerBank", id)
+    elseif result == "not_enough_money" then
+        Network.send("2", "Not enough money!", "RangerBank", id)
+    elseif result == "second_account_doesnt_exists" then
+        Network.send("2", "Receiver doesn't exists!", "RangerBank", id)
+    elseif result == "first_account_doesnt_exists" then
+        Network.send("2", "Sender doesn't exists!", "RangerBank", id)
+    elseif result == "nil_password" then
+        Network.send("2", "Password is nil!", "RangerBank", id)
+    else
+        Network.send("2", "Error!", "RangerBank", id)
+    end
+end
+
 function Network.MessageHandler()
     print("\nWaiting for a message...\n")
     local session_id, message = rednet.receive("RangerBank")
@@ -102,14 +130,8 @@ function Network.MessageHandler()
             local result = Short.AddAccount(message["account"], message["password"], session_id)
             if result == true then
                 Network.send("1", "Account created!", "RangerBank", session_id)
-            elseif result == "account_already_exists" then
-                Network.send("2", "Account already exists!", "RangerBank", session_id)
-            elseif result == "too_many_characters" then
-                Network.send("2", "Too many characters!", "RangerBank", session_id)
-            elseif result == "illegal_characters" then
-                Network.send("2", "Illegal characters!", "RangerBank", session_id)
             else
-                Network.send("2", "Error!", "RangerBank", session_id)
+                Network.send_error(result, session_id)
             end
 
         elseif message[1] == "RangerBank:delete_account" then
@@ -118,12 +140,8 @@ function Network.MessageHandler()
             local result = Short.DeleteAccount(message["account"], message["password"], session_id)
             if result == true then
                 Network.send("1", "Account Deleted!", "RangerBank", session_id)
-            elseif result == "password_incorrect" then
-                Network.send("2", "Password incorrect!", "RangerBank", session_id)
-            elseif result == "account_doesnt_exists" then
-                Network.send("2", "Account doesn't exists!", "RangerBank", session_id)
             else
-                Network.send("2", "Error!", "RangerBank", session_id)
+                Network.send_error(result, session_id)
             end
 
         elseif message[1] == "RangerBank:change_password" then
@@ -135,12 +153,8 @@ function Network.MessageHandler()
             if result == true then
                 Short.AddInLog(LogsPATH, Short.GenerateLog("Change pass", {session_id}))
                 Network.send("1", "Password changed!", "RangerBank", session_id)
-            elseif result == "password_incorrect" then
-                Network.send("2", "Password incorrect!", "RangerBank", session_id)
-            elseif result == "account_doesnt_exists" then
-                Network.send("2", "Account doesn't exists!", "RangerBank", session_id)
             else
-                Network.send("2", "Error!", "RangerBank", session_id)
+                Network.send_error(result, session_id)
             end
 
         elseif message[1] == "RangerBank:add_money" then
@@ -152,14 +166,8 @@ function Network.MessageHandler()
             if result == true then
                 Short.AddInLog(LogsPATH, Short.GenerateLog("Add money", {message["summ"]}))
                 Network.send("1", "Complete!", "RangerBank", session_id)
-            elseif result == "secretpass_incorrect" then
-                Network.send("2", "SecretPass incorrect!", "RangerBank", session_id)
-            elseif result == "not_enough_money" then
-                Network.send("2", "Not enough money!", "RangerBank", session_id)
-            elseif result == "account_doesnt_exists" then
-                Network.send("2", "Account doesn't exists!", "RangerBank", session_id)
             else
-                Network.send("2", "Error!", "RangerBank", session_id)
+                Network.send_error(result, session_id)
             end
 
         elseif message[1] == "RangerBank:minus_money" then
@@ -171,14 +179,8 @@ function Network.MessageHandler()
             if result == true then
                 Short.AddInLog(LogsPATH, Short.GenerateLog("Minus money", {message["summ"]}))
                 Network.send("1", "Complete!", "RangerBank", session_id)
-            elseif result == "not_enough_money" then
-                Network.send("2", "Not enough money!", "RangerBank", session_id)
-            elseif result == "secretpass_incorrect" then
-                Network.send("2", "SecretPass incorrect!", "RangerBank", session_id)
-            elseif result == "account_doesnt_exists" then
-                Network.send("2", "Account doesn't exists!", "RangerBank", session_id)
             else
-                Network.send("2", "Error!", "RangerBank", session_id)
+                Network.send_error(result, session_id)
             end
 
         elseif message[1] == "RangerBank:transfer_money" then
@@ -192,16 +194,8 @@ function Network.MessageHandler()
                 Short.AddInLog(LogsSPATH, Short.GenerateLog("Transfer", {message["receiver"], message["summ"], session_id}))
                 Short.AddInLog(LogsRPATH, Short.GenerateLog("Receive", {message["account"], message["summ"], session_id}))
                 Network.send("1", "Transfering is completed!", "RangerBank", session_id)
-            elseif result == "not_enough_money" then
-                Network.send("2", "Not enough money!", "RangerBank", session_id)
-            elseif result == "password_incorrect" then
-                Network.send("2", "Password incorrect!", "RangerBank", session_id)
-            elseif result == "second_account_doesnt_exists" then
-                Network.send("2", "Receiver doesn't exists!", "RangerBank", session_id)
-            elseif result == "first_account_doesnt_exists" then
-                Network.send("2", "Sender doesn't exists!", "RangerBank", session_id)
             else
-                Network.send("2", "Error!", "RangerBank", session_id)
+                Network.send_error(result, session_id)
             end
 
         elseif message[1] == "RangerBank:first_login_log" then
