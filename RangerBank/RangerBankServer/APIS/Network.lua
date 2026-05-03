@@ -57,7 +57,7 @@ function Network.send_error(result, id)
     elseif result == "too_many_characters" then
         Network.send("2", "Too many characters!", "RangerBank", id)
     elseif result == "illegal_characters" then
-        Network.send("2", "Illegal characters!", "RangerBank", d)
+        Network.send("2", "Illegal characters!", "RangerBank", id)
     elseif result == "password_incorrect" then
         Network.send("2", "Password incorrect!", "RangerBank", id)
     elseif result == "account_doesnt_exists" then
