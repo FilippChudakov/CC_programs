@@ -49,7 +49,7 @@ function Network.send(SendId, Message, Protocol, id)
     end
 end
 
-function send_error(result, id)
+function Network.send_error(result, id)
     if result == true then
         return false
     elseif result == "account_already_exists" then
