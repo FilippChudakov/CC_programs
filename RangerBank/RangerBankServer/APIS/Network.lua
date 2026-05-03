@@ -77,8 +77,13 @@ function Network.send_error(result, id)
     end
 end
 
+local printing = true
+
 function Network.MessageHandler()
-    print("\nWaiting for a message...\n")
+    if printing then
+        print("\nWaiting for a message...\n")
+    end
+    printing = true
     local session_id, message = rednet.receive("RangerBank")
 
     if session_id ~= nil and message ~= nil then
@@ -271,7 +276,11 @@ function Network.MessageHandler()
             else
                 Network.send("2", "Error!", "RangerBank", session_id)
             end
+        else
+            printing = false
         end
+    else
+        printing = false
     end
 end
 
