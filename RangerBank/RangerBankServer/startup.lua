@@ -3,6 +3,7 @@ local Short = dofile("APIS/ShortCuts.lua")
 off = Short.Read("BankData/Off.txt")
 
 if off == "0" then
+    shell.run("clear")
     os.run({}, "BanID.lua")
     os.run({}, "BankServer.lua")
 elseif off == "1" then
