@@ -83,7 +83,6 @@ function Network.MessageHandler()
     if printing then
         print("\nWaiting for a message...\n")
     end
-    printing = true
     local session_id, message = rednet.receive("RangerBank")
 
     if session_id ~= nil and message ~= nil then
@@ -94,26 +93,24 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:get_money" then
             print("getting money...")
-            local BankAccPath = "BankAccounts/"..message["account"]
-            local BankPassPath = "BankAccounts/"..message["account"].."/password.txt"
 
-            if fs.exists(BankAccPath) then
-                local server_password = Short.Read(BankPassPath)
-                if server_password == message["password"] then
-                    Network.send("3", message["account"], "RangerBank", session_id)
-                else
-                    Network.send("2", "Wrong password!", "RangerBank", session_id)
-                    printError("Wrong password!")
-                end
+            local result = Short.GetMoney_Net(message["account"], message["password"], session_id)
+
+            if result == true then
+                Network.send("3", message["account"], "RangerBank", session_id)
             else
-                Network.send("2", "Account doesn't exist!", "RangerBank", session_id)
-                printError("Account doesn't exist!")
+                Network.send_error(result, session_id)
             end
 
         elseif message[1] == "RangerBank:login" then
             print("login...")
             local BankAccPath = "BankAccounts/"..message["account"]
             local BankPassPath = "BankAccounts/"..message["account"].."/password.txt"
+
+            if Short.BanSymbols(message["account"]) then
+                Network.send("2", "Illegal characters!", "RangerBank", id)
+                printError("Illegal characters!")
+            end
 
             if fs.exists(BankAccPath) then
                 local server_password = Short.Read(BankPassPath)
@@ -210,6 +207,11 @@ function Network.MessageHandler()
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
+            if Short.BanSymbols(message["account"]) then
+                Network.send("2", "Illegal characters!", "RangerBank", id)
+                printError("Illegal characters!")
+            end
+
             if fs.exists(AccountPATH) then
                 if Short.Read(PassPATH) == message["password"] then
                     Short.AddInLog(logPATH, Short.GenerateLog("Login", {session_id}))
@@ -226,6 +228,11 @@ function Network.MessageHandler()
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
+
+            if Short.BanSymbols(message["account"]) then
+                Network.send("2", "Illegal characters!", "RangerBank", id)
+                printError("Illegal characters!")
+            end
 
             if fs.exists(AccountPATH) then
                 local pass = Short.Read(PassPATH)
@@ -245,6 +252,11 @@ function Network.MessageHandler()
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
+
+            if Short.BanSymbols(message["account"]) then
+                Network.send("2", "Illegal characters!", "RangerBank", id)
+                printError("Illegal characters!")
+            end
 
             if fs.exists(AccountPATH) then
                 if Short.Read(PassPATH) == message["password"] then
@@ -285,4 +297,3 @@ function Network.MessageHandler()
 end
 
 return Network
-
