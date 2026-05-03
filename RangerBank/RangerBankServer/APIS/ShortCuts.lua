@@ -351,7 +351,6 @@ function Short.AddMoney(AccName, Summ, SecretPass, id)
 end
 
 function Short.MinusMoney(AccName, Summ, SecretPass, id)
-    Summ = math.floor(Summ)
     print("Minusing money for account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
 
