@@ -185,6 +185,34 @@ function Short.GetMoney(AccName)
     end
 end
 
+function Short.GetMoney_Net(Accname, Password, id)
+    local BankAccPath = "BankAccounts/"..Accname
+    local BankPassPath = "BankAccounts/"..Accname.."/password.txt"
+
+    if Short.BanSymbols(Accname) then
+        printError("Illegal characters!")
+        return "illegal_characters"
+    end
+
+    if fs.exists(BankAccPath) then
+        local server_password = Short.Read(BankPassPath)
+        if server_password == Password then
+            if Password ~= nil then
+                return true
+            else
+                printError("Password is nil!")
+                return "nil_password"
+            end
+        else
+            printError("Password incorrect!")
+            return "password_incorrect"
+        end
+    else
+        printError("Account doesn't exists!")
+        return "account_doesnt_exists"
+    end
+end
+
 function Short.AddAccount(AccName, Password, id)
     print("Adding account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
@@ -351,6 +379,7 @@ function Short.AddMoney(AccName, Summ, SecretPass, id)
 end
 
 function Short.MinusMoney(AccName, Summ, SecretPass, id)
+    Summ = math.floor(Summ)
     print("Minusing money for account: "..AccName.."...")
     local BankAccPATH = "BankAccounts/"..AccName
 
