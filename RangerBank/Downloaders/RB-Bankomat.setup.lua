@@ -18,10 +18,6 @@ local files = {
     {   
         url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankTerminals/Bankomat/APIS/UI.lua",
         path = "APIS/UI.lua"
-    },
-    {   -- /RangerBankData/
-        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankTerminals/Bankomat/RangerBankData/SecretPass.txt",
-        path = "RangerBankData/SecretPass.txt"
     }
 }
 
