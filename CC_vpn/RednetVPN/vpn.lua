@@ -4,8 +4,10 @@ local received_messages = {}
 local hostnames = {}
 local prune_received_timer
 
-print("Enter fake ID:")
-fake_id = tonumber(read())
+--print("Enter fake ID:")
+--fake_id = tonumber(read())
+fake_id = math.random(10, rednet.MAX_ID_CHANNELS - 1)
+print("Using fake ID: " .. fake_id)
 
 local function id_as_channel(id)
     return (id or fake_id) % rednet.MAX_ID_CHANNELS
