@@ -1,5 +1,4 @@
 local expect = dofile("rom/modules/main/cc/expect.lua").expect
-local rednet_open = rednet.open
 
 local received_messages = {}
 local hostnames = {}
@@ -14,9 +13,8 @@ end
 
 function rednet.open(modem)
     if modem then
-        rednet_open(modem)
-        peripheral.call(modem, "close", os.getComputerID())
         peripheral.call(modem, "open", fake_id)
+        peripheral.call(modem, "open", rednet.CHANNEL_BROADCAST)
     end
 end
 
