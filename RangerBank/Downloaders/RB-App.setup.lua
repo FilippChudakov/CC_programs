@@ -4,6 +4,10 @@ local files = {
         path = "RangerBank.lua"
     },
     {   -- /APIS/
+        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankClient/APIS/Crypto.lua",
+        path = "APIS/Crypto.lua"
+    },
+    {
         url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankClient/APIS/Network.lua",
         path = "APIS/Network.lua"
     },
