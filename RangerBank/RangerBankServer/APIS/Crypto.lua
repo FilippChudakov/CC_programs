@@ -1,11 +1,21 @@
 local crypto = {}
 
--- простая генерация "случайного" числа
 local function rand(max)
     return math.random(1, max)
 end
 
--- быстрый XOR
+local function toHex(str)
+    return (str:gsub(".", function(c)
+        return string.format("%02X", c:byte())
+    end))
+end
+
+local function fromHex(hex)
+    return (hex:gsub("%x%x", function(cc)
+        return string.char(tonumber(cc, 16))
+    end))
+end
+
 function crypto.xor(data, key)
     local result = ""
     for i = 1, #data do
@@ -17,11 +27,12 @@ function crypto.xor(data, key)
 end
 
 function crypto.encrypt(message, key)
-    return textutils.serialize(crypto.xor(message, key))
+    local raw = crypto.xor(message, key)
+    return toHex(raw)
 end
 
 function crypto.decrypt(message, key)
-    local raw = textutils.unserialize(message)
+    local raw = fromHex(message)
     return crypto.xor(raw, key)
 end
 
