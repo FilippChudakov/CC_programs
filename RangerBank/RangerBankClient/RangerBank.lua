@@ -340,6 +340,7 @@ UI.addButton(transferScreen, UI.createButton("Enter", math.floor(UI.screenWidth/
         Network.Error = message
         UI.screens[mainScreen].labels[2].text = Network.Error
         UI.screens[mainScreen].labels[2].fgColor = colors.red
+        UI.setScreen(mainScreen)
     else
         UI.screens[mainScreen].labels[2].text = "Error"
         UI.screens[mainScreen].labels[2].fgColor = colors.red
