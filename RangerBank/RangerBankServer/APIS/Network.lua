@@ -1,9 +1,13 @@
 local Short = dofile("APIS/ShortCuts.lua")
+local crypto = dofile("APIS/Crypto.lua")
+
+local pub, priv = crypto.generateKeyPair()
+local sessions = {}
 
 local Network = {}
 
 function Network.version()
-    return {"RangerBankServer 2.6", "Fixed some bugs"}
+    return {"RangerBankServer 3.0", "Fixed some bugs and add encryption"}
 end
 
 function Network.changelog(version)
@@ -15,6 +19,8 @@ function Network.changelog(version)
         return "Reworked rednet use"
     elseif version == "2.6" then
         return "Fixed some bugs"
+    elseif version == "3.0" then
+        return "Fixed some bugs and add encryption"
     else
         return "not a version"
     end
@@ -30,28 +36,39 @@ end
 
 function Network.send(SendId, Message, Protocol, id)
     if SendId == "1" then
+        if sessions[id] then
+            Message = crypto.encrypt(Short.serialize(Message), sessions[id])
+        end
         rednet.send(id, {"RangerBank: 1", Message}, Protocol)
 
         print("Message send!")
     elseif SendId == "2" then
+        if sessions[id] then
+            Message = crypto.encrypt(Short.serialize(Message), sessions[id])
+        end
         rednet.send(id, {"RangerBank: 2", Message}, Protocol)
 
         print("Message send!")
     elseif SendId == "3" then
         local money = Short.GetMoney(Message)
         if money ~= nil then
+            money = crypto.encrypt(money, sessions[id])
             rednet.send(id, {"RangerBank: 3", money}, Protocol)
         else
-            rednet.send(id, {"RangerBank: 2", "Account doesn't exists!"}, Protocol)
+            data = crypto.encrypt(Short.serialize({"Account doesn't exists!"}), sessions[id])
+            rednet.send(id, data, Protocol)
         end
         
         print("Message send!")
     end
 end
 
+
 function Network.send_error(result, id)
     if result == true then
         return false
+    elseif result == "unsecured_connection" then
+        Network.send("2", "The server does not support unsecured connections!", "RangerBank", id)
     elseif result == "account_already_exists" then
         Network.send("2", "Account already exists!", "RangerBank", id)
     elseif result == "too_many_characters" then
@@ -83,7 +100,26 @@ function Network.MessageHandler()
     if printing then
         print("\nWaiting for a message...\n")
     end
+    
     local session_id, message = rednet.receive("RangerBank")
+    
+    if message == "key_request" then
+        rednet.send(session_id, pub, "RangerBank")
+        return
+    elseif message[1] == "key" then
+        sessions[session_id] = crypto.decryptWithPrivate(message[2], priv)
+        return
+    elseif message == "ping" then
+        print("id: "..session_id.." ping")
+        rednet.send(session_id, "pong")
+        return
+    elseif type(message) ~= "string" then
+        print("The server does not support unsecured connections.")
+        Network.send_error("unsecured_connection", session_id)
+        return
+    else
+        message = Short.deserialize(crypto.decrypt(message, sessions[session_id]))
+    end
 
     if session_id ~= nil and message ~= nil then
 
@@ -108,7 +144,7 @@ function Network.MessageHandler()
             local BankPassPath = "BankAccounts/"..message["account"].."/password.txt"
 
             if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", id)
+                Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
             end
 
@@ -208,7 +244,7 @@ function Network.MessageHandler()
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
             if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", id)
+                Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
             end
 
@@ -230,7 +266,7 @@ function Network.MessageHandler()
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
             if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", id)
+                Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
             end
 
@@ -254,7 +290,7 @@ function Network.MessageHandler()
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
             if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", id)
+                Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
             end
 
