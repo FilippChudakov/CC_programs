@@ -64,6 +64,10 @@ end
 function Network.receive(Protocol, TimeOut)
     local id, message, protocol = rednet.receive(Protocol, TimeOut)
 
+    if not id then
+        return "Error", "Timeout"
+    end
+
     message[2] = Short.deserialize(crypto.decrypt(message[2], Network.sessionKeys[id]))
 
     if Network.ID == id then
