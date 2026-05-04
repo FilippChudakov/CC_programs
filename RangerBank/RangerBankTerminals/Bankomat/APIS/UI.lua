@@ -39,6 +39,14 @@ end
 
 -- Переключение на экран по ID
 function UI.setScreen(id)
+    local screen = UI.screens[UI.currentScreen]
+    for _, inp in ipairs(screen.inputs) do
+        if not inp.isPlaceholder then
+            inp.text = inp.Placeholder
+            inp.isPlaceholder = true
+            inp.cursorPos = 1
+        end
+    end
     if id >= 1 and id <= #UI.screens then
         UI.currentScreen = id
         UI.selected = 1
@@ -177,6 +185,7 @@ function UI.createInput(x, y, w, h, default, max_sym)
         selected = false,
         cursorPos = 1,
         isPlaceholder = default ~= nil,
+        Placeholder = default or "",
         max_symbols = max_sym or 20
     }
 end
@@ -329,6 +338,10 @@ function UI.handleTextInput(input, buttons, inputs, labels, buttonArrays)
         elseif event == "key" then
             if key == 257 then -- Enter
                 input.active = false
+                if input.text == "" then
+                    input.text = input.Placeholder
+                    input.isPlaceholder = true
+                end
             elseif key == 259 then -- Backspace
                 if input.cursorPos > 1 then
                     -- Удаление символа перед курсором
@@ -350,6 +363,10 @@ function UI.handleTextInput(input, buttons, inputs, labels, buttonArrays)
             if x < input.x or x >= input.x + input.width or
                y < input.y or y >= input.y + input.height then
                 input.active = false
+                if input.text == "" then
+                    input.text = input.Placeholder
+                    input.isPlaceholder = true
+                end
             else
                 -- Устанавливаем курсор в позицию клика
                 local clickPos = x - input.x - 1
@@ -368,7 +385,6 @@ function UI.run()
         UI.createScreen()
     end
     
-    -- Начальное выделение для текущего экрана (исправлено)
     local screen = UI.screens[UI.currentScreen]
     UI.selected = 1
     
