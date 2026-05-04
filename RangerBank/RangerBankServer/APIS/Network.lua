@@ -100,14 +100,18 @@ function Network.MessageHandler()
     if printing then
         print("\nWaiting for a message...\n")
     end
+
+    printing = true
     
     local session_id, message = rednet.receive("RangerBank")
     
     if message == "key_request" then
         rednet.send(session_id, pub, "RangerBank")
+        printing = false
         return
     elseif message[1] == "key" then
         sessions[session_id] = crypto.decryptWithPrivate(message[2], priv)
+        printing = false
         return
     elseif message == "ping" then
         print("id: "..session_id.." ping")
