@@ -16,74 +16,175 @@ function Short.Read(filepath)
     return text
 end
 
-function Short.serialize(t, indent, visited)
-    indent = indent or 0
-    visited = visited or {}
-    local spaces = string.rep(" ", indent)
-    
-    if type(t) == "table" then
-        if visited[t] then return '"[[CIRCULAR_REFERENCE]]"' end
-        visited[t] = true
-        
-        local is_array = true
-        local max_index = 0
-        for k, _ in pairs(t) do
-            if type(k) ~= "number" or k <= 0 or math.floor(k) ~= k then
-                is_array = false
-                break
-            end
-            if k > max_index then max_index = k end
+function Short.serialize(v)
+    local t = type(v)
+
+    if t == "number" or t == "boolean" then
+        return tostring(v)
+
+    elseif t == "string" then
+        return '"' .. v:gsub('"', '\\"') .. '"'
+
+    elseif t == "table" then
+        local out = {}
+
+        for k, val in pairs(v) do
+            out[#out+1] =
+                "[" .. Short.serialize(k) .. "]=" .. Short.serialize(val)
         end
-        
-        local result = {}
-        table.insert(result, "{\n")
-        
-        if is_array then
-            -- Сериализация как массива с сохранением порядка
-            for i = 1, max_index do
-                if t[i] ~= nil then
-                    table.insert(result, spaces .. "  ")
-                    table.insert(result, Short.serialize(t[i], indent + 2, visited))
-                    table.insert(result, ",\n")
-                end
-            end
-        else
-            -- Сериализация как таблицы с сохранением порядка
-            local keys = {}
-            for k, _ in pairs(t) do table.insert(keys, k) end
-            table.sort(keys, function(a, b)
-                if type(a) == type(b) then return a < b end
-                return tostring(a) < tostring(b)
-            end)
-            
-            for _, k in ipairs(keys) do
-                table.insert(result, spaces .. "  [")
-                table.insert(result, Short.serialize(k, indent + 2, visited))
-                table.insert(result, "] = ")
-                table.insert(result, Short.serialize(t[k], indent + 2, visited))
-                table.insert(result, ",\n")
-            end
-        end
-        
-        table.insert(result, spaces .. "}")
-        return table.concat(result)
-    elseif type(t) == "string" then
-        return string.format("%q", t)
-    else
-        return tostring(t)
+
+        return "{" .. table.concat(out, ";") .. "}"
     end
+
+    return "nil"
 end
 
 function Short.deserialize(str)
-    local chunk, err = load("return " .. str)
-    if not chunk then
-        chunk, err = load(str)
+    local i = 1
+
+    local function skip()
+        while str:sub(i,i):match("%s") do
+            i = i + 1
+        end
     end
-    if chunk then
-        return chunk()
-    else
-        error("Failed to deserialize: " .. (err or "unknown error"))
+
+    local function parse_value()
+        skip()
+        local c = str:sub(i,i)
+
+        -- число
+        if c:match("[%d%-]") then
+            local start = i
+            while str:sub(i,i):match("[%d%.%-]") do
+                i = i + 1
+            end
+            return tonumber(str:sub(start, i-1))
+
+        -- строка
+        elseif c == '"' then
+            i = i + 1
+            local result = ""
+
+            while true do
+                local ch = str:sub(i,i)
+
+                if ch == '"' then
+                    i = i + 1
+                    break
+                elseif ch == "\\" then
+                    local next = str:sub(i+1,i+1)
+                    if next == '"' then
+                        result = result .. '"'
+                    elseif next == "\\" then
+                        result = result .. "\\"
+                    else
+                        result = result .. next
+                    end
+                    i = i + 2
+                else
+                    result = result .. ch
+                    i = i + 1
+                end
+            end
+
+            return result
+
+        -- boolean
+        elseif str:sub(i, i+3) == "true" then
+            i = i + 4
+            return true
+        elseif str:sub(i, i+4) == "false" then
+            i = i + 5
+            return false
+        elseif str:sub(i, i+2) == "nil" then
+            i = i + 3
+            return nil
+
+        -- массив
+        elseif c == "[" then
+            i = i + 1
+            local arr = {}
+
+            skip()
+            if str:sub(i,i) == "]" then
+                i = i + 1
+                return arr
+            end
+
+            while true do
+                arr[#arr+1] = parse_value()
+                skip()
+
+                local ch = str:sub(i,i)
+                if ch == "]" then
+                    i = i + 1
+                    break
+                end
+
+                if ch ~= "," then
+                    error("Expected ',' in array")
+                end
+                i = i + 1
+            end
+
+            return arr
+
+        -- таблица
+        elseif c == "{" then
+            i = i + 1
+            local obj = {}
+
+            skip()
+            if str:sub(i,i) == "}" then
+                i = i + 1
+                return obj
+            end
+
+            while true do
+                skip()
+
+                if str:sub(i,i) ~= "[" then
+                    error("Expected '[' for key")
+                end
+                i = i + 1
+
+                local key = parse_value()
+
+                if str:sub(i,i) ~= "]" then
+                    error("Expected ']' after key")
+                end
+                i = i + 1
+
+                skip()
+                if str:sub(i,i) ~= "=" then
+                    error("Expected '=' after key")
+                end
+                i = i + 1
+
+                local val = parse_value()
+                obj[key] = val
+
+                skip()
+                local ch = str:sub(i,i)
+
+                if ch == "}" then
+                    i = i + 1
+                    break
+                end
+
+                if ch ~= ";" then
+                    error("Expected ';' between entries")
+                end
+                i = i + 1
+            end
+
+            return obj
+        end
+
+        error("Unexpected character: " .. c)
     end
+
+    return parse_value()
 end
 
 function Short.NumerateLog(logpath, filepath)
