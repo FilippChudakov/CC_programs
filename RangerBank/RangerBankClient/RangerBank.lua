@@ -3,6 +3,7 @@ local Network = dofile("APIS/Network.lua")
 local Short = dofile("APIS/ShortCuts.lua")
 
 Network.open()
+Network.handshake(Network.ID, "RangerBank")
 
 UI.BGtheme = colors.blue
 UI.button_Theme["bg"] = colors.green
@@ -466,6 +467,37 @@ if login ~= nil and password ~= nil and Secure ~= "1" then
     end
 end
 
-UI.run()
 
+local function gpsConnect()
+    local gpsID = rednet.lookup("GPS", "GPS_Server")
+    if gpsID then
+        Network.handshake(gpsID, "GPS")
+    end
+    return gpsID
+end
+
+local function gpsTracker()
+    local gpsID = gpsConnect()
+    gpsTimer = os.startTimer(1)
+    while true do
+        local event, key, x, y = os.pullEvent()
+        if event == "timer" and key == gpsTimer then
+            if gpsID then
+                local x, y, z = gps.locate(1, false)
+
+
+                if x or y or z then
+                    local data = {"GPS:save", {x, y, z}}
+                    Network.enc_send(gpsID, data, "GPS")
+                end
+            else
+                local gpsID = gpsConnect()
+            end
+            gpsTimer = os.startTimer(10)
+            
+        end
+    end
+end
+
+parallel.waitForAny(UI.run, gpsTracker)
 Network.close()
