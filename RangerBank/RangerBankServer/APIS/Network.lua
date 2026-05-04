@@ -34,16 +34,16 @@ function Network.close()
     peripheral.find("modem", rednet.close)
 end
 
-function Network.send(SendId, Message, Protocol, id)
+function Network.send(SendId, Message, Protocol, id, needEncrypt)
     if SendId == "1" then
-        if sessions[id] then
+        if not needEncrypt then
             Message = crypto.encrypt(Short.serialize(Message), sessions[id])
         end
         rednet.send(id, {"RangerBank: 1", Message}, Protocol)
 
         print("Message send!")
     elseif SendId == "2" then
-        if sessions[id] then
+        if not needEncrypt then
             Message = crypto.encrypt(Short.serialize(Message), sessions[id])
         end
         rednet.send(id, {"RangerBank: 2", Message}, Protocol)
@@ -64,33 +64,33 @@ function Network.send(SendId, Message, Protocol, id)
 end
 
 
-function Network.send_error(result, id)
+function Network.send_error(result, id, needEncrypt)
     if result == true then
         return false
     elseif result == "unsecured_connection" then
-        Network.send("2", "The server does not support unsecured connections!", "RangerBank", id)
+        Network.send("2", "This server does not support unsecured connections!", "RangerBank", id, needEncrypt)
     elseif result == "account_already_exists" then
-        Network.send("2", "Account already exists!", "RangerBank", id)
+        Network.send("2", "Account already exists!", "RangerBank", id, needEncrypt)
     elseif result == "too_many_characters" then
-        Network.send("2", "Too many characters!", "RangerBank", id)
+        Network.send("2", "Too many characters!", "RangerBank", id, needEncrypt)
     elseif result == "illegal_characters" then
-        Network.send("2", "Illegal characters!", "RangerBank", id)
+        Network.send("2", "Illegal characters!", "RangerBank", id, needEncrypt)
     elseif result == "password_incorrect" then
-        Network.send("2", "Password incorrect!", "RangerBank", id)
+        Network.send("2", "Password incorrect!", "RangerBank", id, needEncrypt)
     elseif result == "account_doesnt_exists" then
-        Network.send("2", "Account doesn't exists!", "RangerBank", id)
+        Network.send("2", "Account doesn't exists!", "RangerBank", id, needEncrypt)
     elseif result == "secretpass_incorrect" then
-        Network.send("2", "SecretPass incorrect!", "RangerBank", id)
+        Network.send("2", "SecretPass incorrect!", "RangerBank", id, needEncrypt)
     elseif result == "not_enough_money" then
-        Network.send("2", "Not enough money!", "RangerBank", id)
+        Network.send("2", "Not enough money!", "RangerBank", id, needEncrypt)
     elseif result == "second_account_doesnt_exists" then
-        Network.send("2", "Receiver doesn't exists!", "RangerBank", id)
+        Network.send("2", "Receiver doesn't exists!", "RangerBank", id, needEncrypt)
     elseif result == "first_account_doesnt_exists" then
-        Network.send("2", "Sender doesn't exists!", "RangerBank", id)
+        Network.send("2", "Sender doesn't exists!", "RangerBank", id, needEncrypt)
     elseif result == "nil_password" then
-        Network.send("2", "Password is nil!", "RangerBank", id)
+        Network.send("2", "Password is nil!", "RangerBank", id, needEncrypt)
     else
-        Network.send("2", "Error!", "RangerBank", id)
+        Network.send("2", "Error!", "RangerBank", id, needEncrypt)
     end
 end
 
@@ -114,8 +114,8 @@ function Network.MessageHandler()
         rednet.send(session_id, "pong")
         return
     elseif type(message) ~= "string" then
-        print("The server does not support unsecured connections.")
-        Network.send_error("unsecured_connection", session_id)
+        print("This server does not support unsecured connections.")
+        Network.send_error("unsecured_connection", session_id, true)
         return
     else
         message = Short.deserialize(crypto.decrypt(message, sessions[session_id]))
