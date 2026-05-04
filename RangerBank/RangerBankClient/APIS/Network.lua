@@ -1,10 +1,14 @@
+local Short = dofile("APIS/ShortCuts.lua")
+local crypto = dofile("APIS/Crypto.lua")
 local Network = {}
 
 Network.ID = 0
 Network.Error = nil
+Network.sessionKeys = {}
+
 
 function Network.version()
-    return "RangerBank 2.6"
+    return "RangerBank 3.0"
 end
 
 function Network.changelog(version)
@@ -16,6 +20,8 @@ function Network.changelog(version)
         return "Reworked rednet use"
     elseif version == "2.6" then
         return "Fixed some bugs and add new button"
+    elseif version == "3.0" then
+        return "Fixed some bugs and add encryption"
     else
         return "not a version"
     end
@@ -29,17 +35,36 @@ function Network.close()
     peripheral.find("modem", rednet.close)
 end
 
+function Network.handshake(ID, Protocol)
+    rednet.send(ID, "key_request", Protocol)
+    local id, serverPub = rednet.receive(Protocol, 2)
+
+    Network.sessionKeys[id] = crypto.generateKey(16)
+
+    local encryptedKey = crypto.encryptWithPublic(Network.sessionKeys[id], serverPub)
+    rednet.send(id, {"key", encryptedKey}, Protocol)
+end
+
 function Network.send(ID, SendId, Messages, Protocol)
     local message = {}
     for _, Message in pairs(Messages) do
         table.insert(message, Message)
     end
     local data = Network.BankTable(SendId, message)
+
+    data = crypto.encrypt(Short.serialize(data), Network.sessionKeys[ID])
+    rednet.send(ID, data, Protocol)
+end
+
+function Network.enc_send(ID, Message, Protocol)
+    local data = crypto.encrypt(Short.serialize(Message), Network.sessionKeys[ID])
     rednet.send(ID, data, Protocol)
 end
 
 function Network.receive(Protocol, TimeOut)
     local id, message, protocol = rednet.receive(Protocol, TimeOut)
+
+    message[2] = Short.deserialize(crypto.decrypt(message[2], Network.sessionKeys[id]))
 
     if Network.ID == id then
         if message[1] == "RangerBank: 1" then
