@@ -134,6 +134,8 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:get_money" then
             print("getting money...")
 
+            message["account"] = message["account"]:lower()
+
             local result = Short.GetMoney_Net(message["account"], message["password"], session_id)
 
             if result == true then
@@ -144,6 +146,9 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:login" then
             print("login...")
+
+            message["account"] = message["account"]:lower()
+
             local BankAccPath = "BankAccounts/"..message["account"]
             local BankPassPath = "BankAccounts/"..message["account"].."/password.txt"
 
@@ -169,6 +174,8 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:register" then
             print("register...")
 
+            message["account"] = message["account"]:lower()
+
             local result = Short.AddAccount(message["account"], message["password"], session_id)
             if result == true then
                 Network.send("1", "Account created!", "RangerBank", session_id)
@@ -179,7 +186,7 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:delete_account" then
             print("deleting account...")
 
-            local result = Short.DeleteAccount(message["account"], message["password"], session_id)
+            local result = Short.DeleteAccount(message["account"]:lower(), message["password"], session_id)
             if result == true then
                 Network.send("1", "Account Deleted!", "RangerBank", session_id)
             else
@@ -188,6 +195,8 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:change_password" then
             print("change password...")
+
+            message["account"] = message["account"]:lower()
 
             local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
@@ -201,6 +210,8 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:add_money" then
             print("adding money...")
+            
+            message["account"] = message["account"]:lower()
 
             local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
@@ -215,6 +226,8 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:minus_money" then
             print("minusing money...")
 
+            message["account"] = message["account"]:lower()
+
             local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
             local result = Short.MinusMoney(message["account"], message["summ"], message["secret_pass"], session_id)
@@ -227,6 +240,8 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:transfer_money" then
             print("transfering money...")
+            message["account"] = message["account"]:lower()
+            message["receiver"] = message["receiver"]:lower()
 
             local LogsSPATH = "BankAccounts/"..message["account"].."/logs.txt"
             local LogsRPATH = "BankAccounts/"..message["receiver"].."/logs.txt"
