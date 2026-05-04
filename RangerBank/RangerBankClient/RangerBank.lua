@@ -161,6 +161,7 @@ UI.addButton(mainScreen, UI.createButton("Money", math.floor(UI.screenWidth/2)-5
         Network.Error = message
         UI.screens[mainScreen].labels[2].text = Network.Error
         UI.screens[mainScreen].labels[2].fgColor = colors.red
+        UI.setScreen(mainScreen)
     else
         UI.screens[mainScreen].labels[2].text = "Error"
         UI.screens[mainScreen].labels[2].fgColor = colors.red
@@ -289,6 +290,7 @@ UI.addButton(moneyScreen, UI.createButton("Account History", math.floor(UI.scree
         Network.Error = message
         UI.screens[mainScreen].labels[2].text = Network.Error
         UI.screens[mainScreen].labels[2].fgColor = colors.red
+        UI.setScreen(mainScreen)
     else
         UI.screens[mainScreen].labels[2].text = "Error"
         UI.screens[mainScreen].labels[2].fgColor = colors.red
@@ -308,6 +310,7 @@ UI.addButton(moneyScreen, UI.createButton("Transfer Money", math.floor(UI.screen
         Network.Error = message
         UI.screens[mainScreen].labels[2].text = Network.Error
         UI.screens[mainScreen].labels[2].fgColor = colors.red
+        UI.setScreen(mainScreen)
     else
         UI.screens[mainScreen].labels[2].text = "Error"
         UI.screens[mainScreen].labels[2].fgColor = colors.red
@@ -329,6 +332,11 @@ UI.addButton(transferScreen, UI.createButton("Enter", math.floor(UI.screenWidth/
     local Receiver = UI.screens[transferScreen].inputs[1].text
     local Pass = UI.screens[transferScreen].inputs[2].text
     local Summ = UI.screens[transferScreen].inputs[3].text
+    if UI.screens[transferScreen].inputs[1].isPlaceholder or
+        UI.screens[transferScreen].inputs[2].isPlaceholder or
+        UI.screens[transferScreen].inputs[3].isPlaceholder then
+        return
+    end
     local Login = Short.Read("RangerBankData/Account.txt")
     Network.send(Network.ID, "RangerBank:transfer_money", {Pass, Summ, Receiver, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
@@ -501,4 +509,6 @@ local function gpsTracker()
 end
 
 parallel.waitForAny(UI.run, gpsTracker)
+
+::exit::
 Network.close()
