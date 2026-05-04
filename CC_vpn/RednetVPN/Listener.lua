@@ -35,7 +35,7 @@ elseif not tonumber(serverID) or tonumber(serverID) < 0 or tonumber(serverID) > 
     printError("Wrong argument!")
     return
 else
-    modem.open(serverID)
+    modem.open(tonumber(serverID))
     print("Sniffer active on channel: " .. serverID)
 end
 
