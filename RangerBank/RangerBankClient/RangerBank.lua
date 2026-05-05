@@ -83,6 +83,10 @@ UI.addInput(registerScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.
 UI.addButton(registerScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+2, 8, 3, function()
     local Login = UI.screens[registerScreen].inputs[1].text
     local Pass = UI.screens[registerScreen].inputs[2].text
+    if UI.screens[registerScreen].inputs[1].isPlaceholder or
+        UI.screens[registerScreen].inputs[2].isPlaceholder then
+        return
+    end
     Network.send(Network.ID, "RangerBank:register", {Pass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
     if status == "Complete!" then
@@ -115,6 +119,10 @@ UI.addInput(loginScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.flo
 UI.addButton(loginScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+2, 8, 3, function()
     local Login = UI.screens[loginScreen].inputs[1].text
     local Pass = UI.screens[loginScreen].inputs[2].text
+    if UI.screens[loginScreen].inputs[1].isPlaceholder or
+        UI.screens[loginScreen].inputs[2].isPlaceholder then
+        return
+    end
     Network.send(Network.ID, "RangerBank:login", {Pass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
     if status == "Complete!" then
@@ -219,6 +227,10 @@ UI.addInput(changepassScreen, UI.createInput(math.floor(UI.screenWidth/2)-9, mat
 UI.addButton(changepassScreen, UI.createButton("Change", math.floor(UI.screenWidth/2)-5, math.floor(UI.screenHeight/2)-1+2, 10, 3, function()
     local OldPass = UI.screens[changepassScreen].inputs[1].text
     local NewPass = UI.screens[changepassScreen].inputs[2].text
+    if UI.screens[changepassScreen].inputs[1].isPlaceholder or
+        UI.screens[changepassScreen].inputs[2].isPlaceholder then
+        return
+    end
     local Login = Short.Read("RangerBankData/Account.txt")
     Network.send(Network.ID, "RangerBank:change_password", {OldPass, NewPass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
@@ -249,6 +261,9 @@ UI.addInput(delaccScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.fl
 
 UI.addButton(delaccScreen, UI.createButton("Delete", math.floor(UI.screenWidth/2)-5, math.floor(UI.screenHeight/2)-1+1, 10, 3, function()
     local Pass = UI.screens[delaccScreen].inputs[1].text
+    if UI.screens[delaccScreen].inputs[1].isPlaceholder then
+        return
+    end
     local Login = Short.Read("RangerBankData/Account.txt")
     Network.send(Network.ID, "RangerBank:delete_account", {Pass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
