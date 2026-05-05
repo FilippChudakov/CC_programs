@@ -8,7 +8,7 @@ print(version[1].." "..version[2])
 --- Main while true ---
 while true do
     --Network.MessageHandler()
-    local try = pcall(Network.MessageHandler)
+    local try, err = pcall(Network.MessageHandler)
     if try == false then
         print("")
         printError("Error:")
