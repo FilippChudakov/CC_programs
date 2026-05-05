@@ -1,13 +1,14 @@
 local Short = dofile("APIS/ShortCuts.lua")
 local crypto = dofile("APIS/Crypto.lua")
-
-local pub, priv = crypto.generateKeyPair()
-local sessions = {}
-
 local Network = {}
 
+Network.ID = 0
+Network.Error = nil
+Network.sessionKeys = {}
+
+
 function Network.version()
-    return {"RangerBankServer 3.0", "Fixed some bugs and add encryption"}
+    return "RangerBank 3.0"
 end
 
 function Network.changelog(version)
@@ -18,7 +19,7 @@ function Network.changelog(version)
     elseif version == "2.5" then
         return "Reworked rednet use"
     elseif version == "2.6" then
-        return "Fixed some bugs"
+        return "Fixed some bugs and add new button"
     elseif version == "3.0" then
         return "Fixed some bugs and add encryption"
     else
@@ -34,321 +35,82 @@ function Network.close()
     peripheral.find("modem", rednet.close)
 end
 
-function Network.send(SendId, Message, Protocol, id, needEncrypt)
-    if SendId == "1" then
-        if not needEncrypt then
-            Message = crypto.encrypt(Short.serialize(Message), sessions[id])
-        end
-        rednet.send(id, {"RangerBank: 1", Message}, Protocol)
+function Network.handshake(ID, Protocol)
+    rednet.send(ID, "key_request", Protocol)
+    local id, serverPub = rednet.receive(Protocol, 2)
 
-        print("Message send!")
-    elseif SendId == "2" then
-        if not needEncrypt then
-            Message = crypto.encrypt(Short.serialize(Message), sessions[id])
-        end
-        rednet.send(id, {"RangerBank: 2", Message}, Protocol)
-
-        print("Message send!")
-    elseif SendId == "3" then
-        local money = Short.GetMoney(Message)
-        if money ~= nil then
-            money = crypto.encrypt(money, sessions[id])
-            rednet.send(id, {"RangerBank: 3", money}, Protocol)
-        else
-            data = crypto.encrypt(Short.serialize({"Account doesn't exists!"}), sessions[id])
-            rednet.send(id, data, Protocol)
-        end
-        
-        print("Message send!")
-    end
-end
-
-
-function Network.send_error(result, id, needEncrypt)
-    if result == true then
+    if not id then
+        print("Ошибка: Сервер не ответил на запрос ключа")
         return false
-    elseif result == "unsecured_connection" then
-        Network.send("2", "This server does not support unsecured connections!", "RangerBank", id, needEncrypt)
-    elseif result == "account_already_exists" then
-        Network.send("2", "Account already exists!", "RangerBank", id, needEncrypt)
-    elseif result == "too_many_characters" then
-        Network.send("2", "Too many characters!", "RangerBank", id, needEncrypt)
-    elseif result == "illegal_characters" then
-        Network.send("2", "Illegal characters!", "RangerBank", id, needEncrypt)
-    elseif result == "password_incorrect" then
-        Network.send("2", "Password incorrect!", "RangerBank", id, needEncrypt)
-    elseif result == "account_doesnt_exists" then
-        Network.send("2", "Account doesn't exists!", "RangerBank", id, needEncrypt)
-    elseif result == "secretpass_incorrect" then
-        Network.send("2", "SecretPass incorrect!", "RangerBank", id, needEncrypt)
-    elseif result == "not_enough_money" then
-        Network.send("2", "Not enough money!", "RangerBank", id, needEncrypt)
-    elseif result == "second_account_doesnt_exists" then
-        Network.send("2", "Receiver doesn't exists!", "RangerBank", id, needEncrypt)
-    elseif result == "first_account_doesnt_exists" then
-        Network.send("2", "Sender doesn't exists!", "RangerBank", id, needEncrypt)
-    elseif result == "nil_password" then
-        Network.send("2", "Password is nil!", "RangerBank", id, needEncrypt)
-    else
-        Network.send("2", "Error!", "RangerBank", id, needEncrypt)
+    end
+
+    local clientPub, clientPriv = crypto.generateKeyPair()
+
+    Network.sessionKeys[id] = crypto.getSharedSecret(serverPub, clientPriv)
+    rednet.send(id, {"key", clientPub}, Protocol)
+    return true
+end
+
+function Network.send(ID, SendId, Messages, Protocol)
+    local message = {}
+    for _, Message in pairs(Messages) do
+        table.insert(message, Message)
+    end
+    local data = Network.BankTable(SendId, message)
+
+    data = crypto.encrypt(Short.serialize(data), Network.sessionKeys[ID])
+    rednet.send(ID, data, Protocol)
+end
+
+function Network.enc_send(ID, Message, Protocol)
+    local data = crypto.encrypt(Short.serialize(Message), Network.sessionKeys[ID])
+    rednet.send(ID, data, Protocol)
+end
+
+function Network.receive(Protocol, TimeOut)
+    local id, message, protocol = rednet.receive(Protocol, TimeOut)
+
+    if not id then
+        return "Error", "Timeout"
+    end
+
+    message[2] = Short.deserialize(crypto.decrypt(message[2], Network.sessionKeys[id]))
+
+    if Network.ID == id then
+        if message[1] == "RangerBank: 1" then
+            return "Complete!", message[2]
+        elseif message[1] == "RangerBank: 2" then
+            return "Error", message[2]
+        elseif message[1] == "RangerBank: 3" then
+            return "Money", message[2]
+        else
+            return "Error", "Wrong send ID"
+        end
     end
 end
 
-local printing = true
-
-function Network.MessageHandler()
-    if printing then
-        print("\nWaiting for a message...\n")
+function Network.BankTable(SendId, data)
+    local new_data = {SendId}
+    if SendId == "RangerBank:get_money" or SendId == "RangerBank:login" or SendId == "RangerBank:register" or SendId == "RangerBank:delete_account" or SendId == "RangerBank:get_log" or SendId == "RangerBank:first_login_log" or SendId == "RangerBank:delete_login_logs" then
+        new_data["password"] = data[1]
+        new_data["account"] = data[2]
+    elseif SendId == "RangerBank:minus_money" or SendId == "RangerBank:add_money" then
+        new_data["account"] = data[1]
+        new_data["summ"] = data[2]
+        new_data["secret_pass"] = data[3]
+    elseif SendId == "RangerBank:change_password" then
+        new_data["password"] = data[1]
+        new_data["new_pass"] = data[2]
+        new_data["account"] = data[3]
+    elseif SendId == "RangerBank:transfer_money" then
+        new_data["password"] = data[1]
+        new_data["summ"] = data[2]
+        new_data["receiver"] = data[3]
+        new_data["account"] = data[4]
+    elseif SendId == "RangerBank:OFF" then
+        new_data["secret_pass"] = data[1]
     end
-
-    printing = true
-    
-    local session_id, message = rednet.receive("RangerBank")
-    
-    if message == "key_request" then
-        rednet.send(session_id, pub, "RangerBank")
-        printing = false
-        return
-    elseif message[1] == "key" then
-        sessions[session_id] = crypto.getSharedSecret(message[2], priv)
-        printing = false
-        return
-    elseif message == "ping" then
-        print("id: "..session_id.." ping")
-        rednet.send(session_id, "pong")
-        return
-    elseif type(message) ~= "string" then
-        print("This server does not support unsecured connections.")
-        Network.send_error("unsecured_connection", session_id, true)
-        return
-    else
-        message = Short.deserialize(crypto.decrypt(message, sessions[session_id]))
-    end
-
-    if session_id ~= nil and message ~= nil then
-
-        if message[1] == "ping" then
-            print("id: "..session_id.." ping")
-            rednet.send(session_id, "pong")
-
-        elseif message[1] == "RangerBank:get_money" then
-            print("getting money...")
-
-            message["account"] = message["account"]:lower()
-
-            local result = Short.GetMoney_Net(message["account"], message["password"], session_id)
-
-            if result == true then
-                Network.send("3", message["account"], "RangerBank", session_id)
-            else
-                Network.send_error(result, session_id)
-            end
-
-        elseif message[1] == "RangerBank:login" then
-            print("login...")
-
-            message["account"] = message["account"]:lower()
-
-            local BankAccPath = "BankAccounts/"..message["account"]
-            local BankPassPath = "BankAccounts/"..message["account"].."/password.txt"
-
-            if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", session_id)
-                printError("Illegal characters!")
-            end
-
-            if fs.exists(BankAccPath) then
-                local server_password = Short.Read(BankPassPath)
-                if server_password == message["password"] then
-                    Network.send("1", "Succesfuly logined!", "RangerBank", session_id)
-                    print("Succesfuly logined!")
-                else
-                    Network.send("2", "Wrong password!", "RangerBank", session_id)
-                    printError("Wrong password!")
-                end
-            else
-                Network.send("2", "Account doesn't exist!", "RangerBank", session_id)
-                printError("Account doesn't exist!")
-            end
-
-        elseif message[1] == "RangerBank:register" then
-            print("register...")
-
-            message["account"] = message["account"]:lower()
-
-            local result = Short.AddAccount(message["account"], message["password"], session_id)
-            if result == true then
-                Network.send("1", "Account created!", "RangerBank", session_id)
-            else
-                Network.send_error(result, session_id)
-            end
-
-        elseif message[1] == "RangerBank:delete_account" then
-            print("deleting account...")
-
-            local result = Short.DeleteAccount(message["account"]:lower(), message["password"], session_id)
-            if result == true then
-                Network.send("1", "Account Deleted!", "RangerBank", session_id)
-            else
-                Network.send_error(result, session_id)
-            end
-
-        elseif message[1] == "RangerBank:change_password" then
-            print("change password...")
-
-            message["account"] = message["account"]:lower()
-
-            local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
-
-            local result = Short.ChangePassword(message["account"], message["password"], message["new_pass"], session_id)
-            if result == true then
-                Short.AddInLog(LogsPATH, Short.GenerateLog("Change pass", {session_id}))
-                Network.send("1", "Password changed!", "RangerBank", session_id)
-            else
-                Network.send_error(result, session_id)
-            end
-
-        elseif message[1] == "RangerBank:add_money" then
-            print("adding money...")
-            
-            message["account"] = message["account"]:lower()
-
-            local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
-
-            local result = Short.AddMoney(message["account"], message["summ"], message["secret_pass"], session_id)
-            if result == true then
-                Short.AddInLog(LogsPATH, Short.GenerateLog("Add money", {message["summ"]}))
-                Network.send("1", "Complete!", "RangerBank", session_id)
-            else
-                Network.send_error(result, session_id)
-            end
-
-        elseif message[1] == "RangerBank:minus_money" then
-            print("minusing money...")
-
-            message["account"] = message["account"]:lower()
-
-            local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
-
-            local result = Short.MinusMoney(message["account"], message["summ"], message["secret_pass"], session_id)
-            if result == true then
-                Short.AddInLog(LogsPATH, Short.GenerateLog("Minus money", {message["summ"]}))
-                Network.send("1", "Complete!", "RangerBank", session_id)
-            else
-                Network.send_error(result, session_id)
-            end
-
-        elseif message[1] == "RangerBank:transfer_money" then
-            print("transfering money...")
-            message["account"] = message["account"]:lower()
-            message["receiver"] = message["receiver"]:lower()
-
-            local LogsSPATH = "BankAccounts/"..message["account"].."/logs.txt"
-            local LogsRPATH = "BankAccounts/"..message["receiver"].."/logs.txt"
-
-            local result = Short.TransferMoney(message["account"], message["receiver"], message["password"], tonumber(message["summ"]), session_id)
-            if result == true then
-                Short.AddInLog(LogsSPATH, Short.GenerateLog("Transfer", {message["receiver"], message["summ"], session_id}))
-                Short.AddInLog(LogsRPATH, Short.GenerateLog("Receive", {message["account"], message["summ"], session_id}))
-                Network.send("1", "Transfering is completed!", "RangerBank", session_id)
-            else
-                Network.send_error(result, session_id)
-            end
-
-        elseif message[1] == "RangerBank:first_login_log" then
-            print("Log login...")
-
-            local AccountPATH = "BankAccounts/"..message["account"]
-            local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
-            local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
-
-            if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", session_id)
-                printError("Illegal characters!")
-            end
-
-            if fs.exists(AccountPATH) then
-                if Short.Read(PassPATH) == message["password"] then
-                    Short.AddInLog(logPATH, Short.GenerateLog("Login", {session_id}))
-                else
-                    Network.send("2", "Wrong password!", "RangerBank", session_id)
-                end
-            else
-                Network.send("2", "Account doesnt exists!", "RangerBank", session_id)
-            end
-
-        elseif message[1] == "RangerBank:get_log" then
-            print("Get log...")
-
-            local AccountPATH = "BankAccounts/"..message["account"]
-            local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
-            local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
-
-            if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", session_id)
-                printError("Illegal characters!")
-            end
-
-            if fs.exists(AccountPATH) then
-                local pass = Short.Read(PassPATH)
-                if pass == message["password"] then
-                    local log = Short.Read(logPATH)
-                    Network.send("1", log, "RangerBank", session_id)
-                else
-                    Network.send("2", "Wrong password!", "RangerBank", session_id)
-                end
-            else
-                Network.send("2", "Account doesnt exists!", "RangerBank", session_id)
-            end
-        
-        elseif message[1] == "RangerBank:delete_login_logs" then
-            print("deleting logs...")
-
-            local AccountPATH = "BankAccounts/"..message["account"]
-            local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
-            local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
-
-            if Short.BanSymbols(message["account"]) then
-                Network.send("2", "Illegal characters!", "RangerBank", session_id)
-                printError("Illegal characters!")
-            end
-
-            if fs.exists(AccountPATH) then
-                if Short.Read(PassPATH) == message["password"] then
-                    local status = Short.DeleteFullLog(logPATH, "Login")
-                    if status then
-                        Short.AddInLog(logPATH, Short.GenerateLog("DLL", {session_id}))
-                    end
-                    local log = Short.Read(logPATH)
-                    Network.send("1", log, "RangerBank", session_id)
-                else
-                    Network.send("2", "Wrong password!", "RangerBank", session_id)
-                end
-            else
-                Network.send("2", "Account doesnt exists!", "RangerBank", session_id)
-            end
-
-        elseif message[1] == "RangerBank:OFF" then
-            print("OFF?...")
-
-            local result = Short.BankOFF(message["secret_pass"], session_id)
-            if result == true then
-                local OffPATH = "BankData/Off.txt"
-                Network.send("1", "OFF", "RangerBank", session_id)
-                Network.close()
-                Short.Write("1", OffPATH)
-                print("Off...")
-                os.sleep(1)
-                os.reboot()
-            else
-                Network.send("2", "Error!", "RangerBank", session_id)
-            end
-        else
-            printing = false
-        end
-    else
-        printing = false
-    end
+    return new_data
 end
 
 return Network
