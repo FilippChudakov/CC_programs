@@ -58,12 +58,12 @@ function Network.send(ID, SendId, Messages, Protocol)
     end
     local data = Network.BankTable(SendId, message)
 
-    data = crypto.encrypt(Short.serialize(data), Network.sessionKeys[ID])
+    data = crypto.encrypt(textutils.serialize(data), Network.sessionKeys[ID])
     rednet.send(ID, data, Protocol)
 end
 
 function Network.enc_send(ID, Message, Protocol)
-    local data = crypto.encrypt(Short.serialize(Message), Network.sessionKeys[ID])
+    local data = crypto.encrypt(textutils.serialize(Message), Network.sessionKeys[ID])
     rednet.send(ID, data, Protocol)
 end
 
@@ -78,7 +78,7 @@ function Network.receive(Protocol, TimeOut)
         return "Error", "Format error"
     end
 
-    message[2] = Short.deserialize(crypto.decrypt(message[2], Network.sessionKeys[id]))
+    message[2] = textutils.unserialize(crypto.decrypt(message[2], Network.sessionKeys[id]))
 
     if Network.ID == id then
         if message[1] == "RangerBank: 1" then
