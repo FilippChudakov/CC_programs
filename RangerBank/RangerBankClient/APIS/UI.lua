@@ -173,7 +173,7 @@ function UI.updateButtonArray(buttonArray, filePath)
 end
 
 -- Создание поля ввода
-function UI.createInput(x, y, w, h, default, max_sym)
+function UI.createInput(x, y, w, h, default, max_sym, is_secret)
     return {
         type = "input",
         text = default or "",
@@ -186,7 +186,8 @@ function UI.createInput(x, y, w, h, default, max_sym)
         cursorPos = 1,
         isPlaceholder = default ~= nil,
         Placeholder = default or "",
-        max_symbols = max_sym or 20
+        max_symbols = max_sym or 20,
+        is_secret = is_secret or false
     }
 end
 
@@ -252,6 +253,10 @@ function UI.draw(buttons, inputs, labels, buttonArrays)
             displayText = inp.text:sub(textOffset + 1, textOffset + maxVisible)
         else
             displayText = inp.text:sub(1, maxVisible)
+        end
+
+        if inp.is_secret and not inp.isPlaceholder then
+            displayText = string.rep("*", #displayText)
         end
         
         term.setCursorPos(inp.x + 2, inp.y + 1)
