@@ -89,6 +89,8 @@ function Network.send_error(result, id, needEncrypt)
         Network.send("2", "Sender doesn't exists!", "RangerBank", id, needEncrypt)
     elseif result == "nil_password" then
         Network.send("2", "Password is nil!", "RangerBank", id, needEncrypt)
+    elseif result == "wrong_message_format" then
+        Network.send("2", "Wrong message format!", "RangerBank", id, needEncrypt)
     else
         Network.send("2", "Error!", "RangerBank", id, needEncrypt)
     end
@@ -134,6 +136,12 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:get_money" then
             print("getting money...")
 
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             message["account"] = message["account"]:lower()
 
             local result = Short.GetMoney_Net(message["account"], message["password"], session_id)
@@ -147,6 +155,12 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:login" then
             print("login...")
 
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             message["account"] = message["account"]:lower()
 
             local BankAccPath = "BankAccounts/"..message["account"]
@@ -155,6 +169,7 @@ function Network.MessageHandler()
             if Short.BanSymbols(message["account"]) then
                 Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
+                return
             end
 
             if fs.exists(BankAccPath) then
@@ -173,6 +188,12 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:register" then
             print("register...")
+            
+             if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
 
             message["account"] = message["account"]:lower()
 
@@ -186,6 +207,12 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:delete_account" then
             print("deleting account...")
 
+             if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             local result = Short.DeleteAccount(message["account"]:lower(), message["password"], session_id)
             if result == true then
                 Network.send("1", "Account Deleted!", "RangerBank", session_id)
@@ -195,6 +222,12 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:change_password" then
             print("change password...")
+
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") or not Short.is_in_table(message, "new_pass") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
 
             message["account"] = message["account"]:lower()
 
@@ -211,6 +244,12 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:add_money" then
             print("adding money...")
             
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "summ") or not Short.is_in_table(message, "secret_pass") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             message["account"] = message["account"]:lower()
 
             local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
@@ -230,6 +269,12 @@ function Network.MessageHandler()
 
             local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "summ") or not Short.is_in_table(message, "secret_pass") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             local result = Short.MinusMoney(message["account"], message["summ"], message["secret_pass"], session_id)
             if result == true then
                 Short.AddInLog(LogsPATH, Short.GenerateLog("Minus money", {message["summ"]}))
@@ -240,6 +285,13 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:transfer_money" then
             print("transfering money...")
+
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") or not Short.is_in_table(message, "receiver") or not Short.is_in_table(message, "summ")  then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             message["account"] = message["account"]:lower()
             message["receiver"] = message["receiver"]:lower()
 
@@ -258,6 +310,12 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:first_login_log" then
             print("Log login...")
 
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
@@ -265,6 +323,7 @@ function Network.MessageHandler()
             if Short.BanSymbols(message["account"]) then
                 Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
+                return
             end
 
             if fs.exists(AccountPATH) then
@@ -280,6 +339,12 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:get_log" then
             print("Get log...")
 
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
@@ -287,6 +352,7 @@ function Network.MessageHandler()
             if Short.BanSymbols(message["account"]) then
                 Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
+                return
             end
 
             if fs.exists(AccountPATH) then
@@ -304,6 +370,12 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:delete_login_logs" then
             print("deleting logs...")
 
+            if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "password") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
+
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
             local logPATH = "BankAccounts/"..message["account"].."/logs.txt"
@@ -311,6 +383,7 @@ function Network.MessageHandler()
             if Short.BanSymbols(message["account"]) then
                 Network.send("2", "Illegal characters!", "RangerBank", session_id)
                 printError("Illegal characters!")
+                return
             end
 
             if fs.exists(AccountPATH) then
@@ -330,6 +403,12 @@ function Network.MessageHandler()
 
         elseif message[1] == "RangerBank:OFF" then
             print("OFF?...")
+
+            if not Short.is_in_table(message, "secret_pass") then
+                printError("Wrong message format!")
+                Network.send_error("wrong_message_format", session_id)
+                return
+            end
 
             local result = Short.BankOFF(message["secret_pass"], session_id)
             if result == true then
