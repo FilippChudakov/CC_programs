@@ -78,7 +78,7 @@ function Network.receive(Protocol, TimeOut)
         return "Error", "Format error"
     end
 
-    message[2] = textutils.unserialize(crypto.decrypt(message[2], Network.sessionKeys[id]))
+    message[2] = crypto.decrypt(message[2], Network.sessionKeys[id])
 
     if Network.ID == id then
         if message[1] == "RangerBank: 1" then
