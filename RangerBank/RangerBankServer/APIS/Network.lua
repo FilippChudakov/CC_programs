@@ -130,11 +130,12 @@ function Network.MessageHandler()
         Network.send_error("unsecured_connection", session_id, true)
         return
     else
-        message = Short.deserialize(crypto.decrypt(message, sessions[session_id]))
+        message = crypto.decrypt(message, sessions[session_id])
     end
 
     if session_id ~= nil and message ~= nil then
-
+        message = Short.deserialize(message)
+        
         if message[1] == "ping" then
             print("id: "..session_id.." ping")
             rednet.send(session_id, "pong")
