@@ -74,7 +74,7 @@ function Network.receive(Protocol, TimeOut)
         return "Error", "Timeout"
     end
 
-    if not Short.is_in_table(message[1]) or not Short.is_in_table(message[2]) then
+    if not Short.is_in_table(message, 1) or not Short.is_in_table(message, 2) then
         return "Error", "Format error"
     end
 
