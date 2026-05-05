@@ -13,5 +13,6 @@ while true do
         print("")
         printError("Unknown Error")
         print("")
+        sleep(0)
     end
 end
