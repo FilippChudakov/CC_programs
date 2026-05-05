@@ -33,10 +33,10 @@ end
 
 function Short.CreateLog(filepath, log)
     local Full_log = {}
-    local serialized_log = Short.serialize(log)
+    local serialized_log = textutils.serialize(log)
     table.insert(Full_log, serialized_log)
 
-    local serialized_Full_log = Short.serialize(Full_log)
+    local serialized_Full_log = textutils.serialize(Full_log)
     Short.Write(serialized_Full_log, filepath)
 end
 
@@ -44,7 +44,7 @@ function Short.GenerateLog(typed, data)
     local log = {}
     local date = os.date("%Y-%m-%d %H:%M")
 
-    local serialized_data = Short.serialize(data)
+    local serialized_data = textutils.serialize(data)
 
     log["type"] = typed
     log["date"] = date
@@ -55,31 +55,31 @@ end
 
 function Short.AddInLog(filepath, log)
     local file = Short.Read(filepath)
-    local Full_log = Short.deserialize(file)
+    local Full_log = textutils.unserialize(file)
 
-    local serialized_log = Short.serialize(log)
+    local serialized_log = textutils.serialize(log)
     table.insert(Full_log, serialized_log)
 
-    local serialized_Full_log = Short.serialize(Full_log)
+    local serialized_Full_log = textutils.serialize(Full_log)
     Short.Write(serialized_Full_log, filepath)
 end
 
 function Short.DeleteFullLog(filepath, typed)
     local file = Short.Read(filepath)
-    local Full_log = Short.deserialize(file)
+    local Full_log = textutils.unserialize(file)
 
     local new_log = {}
     local find = false
 
     for i, value in ipairs(Full_log) do
-        if typed ~= Short.deserialize(value)["type"] then
+        if typed ~= textutils.unserialize(value)["type"] then
             table.insert(new_log, value)
         else
             find = true
         end
     end
 
-    Short.Write(Short.serialize(new_log), filepath)
+    Short.Write(textutils.serialize(new_log), filepath)
 
     return find
 end
