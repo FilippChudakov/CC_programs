@@ -38,7 +38,7 @@ function Network.send(SendId, Message, Protocol, id, needEncrypt)
     if SendId == "1" then
         if not needEncrypt then
             if type(Message) == "table" then
-                Message = Short.serialize(Message)
+                Message = textutils.serialize(Message)
             end
             Message = crypto.encrypt(Message, sessions[id])
         end
@@ -48,7 +48,7 @@ function Network.send(SendId, Message, Protocol, id, needEncrypt)
     elseif SendId == "2" then
         if not needEncrypt then
             if type(Message) == "table" then
-                Message = Short.serialize(Message)
+                Message = textutils.serialize(Message)
             end
             Message = crypto.encrypt(Message, sessions[id])
         end
@@ -61,7 +61,7 @@ function Network.send(SendId, Message, Protocol, id, needEncrypt)
             money = crypto.encrypt(money, sessions[id])
             rednet.send(id, {"RangerBank: 3", money}, Protocol)
         else
-            data = crypto.encrypt(Short.serialize({"Account doesn't exists!"}), sessions[id])
+            data = crypto.encrypt(textutils.serialize({"Account doesn't exists!"}), sessions[id])
             rednet.send(id, data, Protocol)
         end
         
@@ -134,8 +134,8 @@ function Network.MessageHandler()
     end
 
     if session_id ~= nil and message ~= nil then
-        message = Short.deserialize(message)
-        
+        message = textutils.unserialize(message)
+
         if message[1] == "ping" then
             print("id: "..session_id.." ping")
             rednet.send(session_id, "pong")
