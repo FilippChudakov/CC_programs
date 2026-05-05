@@ -74,6 +74,10 @@ function Network.receive(Protocol, TimeOut)
         return "Error", "Timeout"
     end
 
+    if not Short.is_in_table(message[1]) or not Short.is_in_table(message[2]) then
+        return "Error", "Format error"
+    end
+
     message[2] = Short.deserialize(crypto.decrypt(message[2], Network.sessionKeys[id]))
 
     if Network.ID == id then
