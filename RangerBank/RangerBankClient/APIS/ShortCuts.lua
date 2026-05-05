@@ -28,20 +28,12 @@ function Short.is_in_table(table, v)
     return found
 end
 
-function Short.serialize(v)
-    return textutils.serialize(v)
-end
-
-function Short.deserialize(str)
-    return textutils.unserialize(str)
-end
-
 function Short.NumerateLog(logpath, filepath)
-    local log = Short.deserialize(Short.Read(logpath))
+    local log = textutils.unserialize(Short.Read(logpath))
     local numeratelog = ""
 
     for i, value in ipairs(log) do
-        numeratelog = numeratelog..i..". "..Short.deserialize(value)["type"].."\n"
+        numeratelog = numeratelog..i..". "..textutils.unserialize(value)["type"].."\n"
     end
 
     Short.Write(numeratelog, filepath)
