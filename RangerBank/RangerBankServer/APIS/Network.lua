@@ -110,7 +110,7 @@ function Network.MessageHandler()
         printing = false
         return
     elseif message[1] == "key" then
-        sessions[session_id] = crypto.decryptWithPrivate(message[2], priv)
+        sessions[session_id] = crypto.getSharedSecret(message[2], priv)
         printing = false
         return
     elseif message == "ping" then
