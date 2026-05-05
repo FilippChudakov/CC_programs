@@ -19,6 +19,9 @@ local function fromHex(hex)
 end
 
 function crypto.rc4(data, key)
+    if not key or not data then
+        return
+    end
     local S = {}
     for i = 0, 255 do S[i] = i end
     local j = 0
