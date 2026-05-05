@@ -30,13 +30,6 @@ function Short.is_in_table(table, v)
     return found
 end
 
-function Short.serialize(v)
-    return textutils.serialize(v)
-end
-
-function Short.deserialize(str)
-    return textutils.unserialize(str)
-end
 
 function Short.CreateLog(filepath, log)
     local Full_log = {}
