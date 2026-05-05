@@ -78,7 +78,7 @@ end))
 
 -- register screen
 UI.addInput(registerScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-6, 16, 3, "Enter Login", 10))
-UI.addInput(registerScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)-1-2, 14, 3, "Enter Pass", 10))
+UI.addInput(registerScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)-1-2, 14, 3, "Enter Pass", 10, true))
 
 UI.addButton(registerScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+2, 8, 3, function()
     local Login = UI.screens[registerScreen].inputs[1].text
@@ -114,7 +114,7 @@ end))
 
 -- login screen
 UI.addInput(loginScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-6, 16, 3, "Enter Login", 10))
-UI.addInput(loginScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)-1-2, 14, 3, "Enter Pass", 10))
+UI.addInput(loginScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)-1-2, 14, 3, "Enter Pass", 10, true))
 
 UI.addButton(loginScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+2, 8, 3, function()
     local Login = UI.screens[loginScreen].inputs[1].text
@@ -221,8 +221,8 @@ end))
 
 
 -- change password screen
-UI.addInput(changepassScreen, UI.createInput(math.floor(UI.screenWidth/2)-9, math.floor(UI.screenHeight/2)-1-6, 18, 3, "Enter old Pass", 10))
-UI.addInput(changepassScreen, UI.createInput(math.floor(UI.screenWidth/2)-9, math.floor(UI.screenHeight/2)-1-2, 18, 3, "Enter new Pass", 10))
+UI.addInput(changepassScreen, UI.createInput(math.floor(UI.screenWidth/2)-9, math.floor(UI.screenHeight/2)-1-6, 18, 3, "Enter old Pass", 10, true))
+UI.addInput(changepassScreen, UI.createInput(math.floor(UI.screenWidth/2)-9, math.floor(UI.screenHeight/2)-1-2, 18, 3, "Enter new Pass", 10, true))
 
 UI.addButton(changepassScreen, UI.createButton("Change", math.floor(UI.screenWidth/2)-5, math.floor(UI.screenHeight/2)-1+2, 10, 3, function()
     local OldPass = UI.screens[changepassScreen].inputs[1].text
@@ -257,7 +257,7 @@ end))
 
 
 -- delete account screen
-UI.addInput(delaccScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)-1-4, 14, 3, "Enter Pass", 10))
+UI.addInput(delaccScreen, UI.createInput(math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)-1-4, 14, 3, "Enter Pass", 10, true))
 
 UI.addButton(delaccScreen, UI.createButton("Delete", math.floor(UI.screenWidth/2)-5, math.floor(UI.screenHeight/2)-1+1, 10, 3, function()
     local Pass = UI.screens[delaccScreen].inputs[1].text
@@ -340,7 +340,7 @@ end))
 
 -- transfer screen
 UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-9, math.floor(UI.screenHeight/2)-1-7, 18, 3, "Enter Receiver", 10))
-UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-4, 16, 3, "Enter Pass", 10))
+UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-4, 16, 3, "Enter Pass", 10, true))
 UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-1, 16, 3, "Enter Summ", 10))
 
 UI.addButton(transferScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+3, 8, 3, function()
