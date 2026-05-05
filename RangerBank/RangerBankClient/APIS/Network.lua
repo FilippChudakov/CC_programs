@@ -39,10 +39,16 @@ function Network.handshake(ID, Protocol)
     rednet.send(ID, "key_request", Protocol)
     local id, serverPub = rednet.receive(Protocol, 2)
 
-    Network.sessionKeys[id] = crypto.generateKey(16)
+    if not id then
+        print("Ошибка: Сервер не ответил на запрос ключа")
+        return false
+    end
 
-    local encryptedKey = crypto.encryptWithPublic(Network.sessionKeys[id], serverPub)
-    rednet.send(id, {"key", encryptedKey}, Protocol)
+    local clientPub, clientPriv = crypto.generateKeyPair()
+
+    Network.sessionKeys[id] = crypto.getSharedSecret(serverPub, clientPriv)
+    rednet.send(id, {"key", clientPub}, Protocol)
+    return true
 end
 
 function Network.send(ID, SendId, Messages, Protocol)
