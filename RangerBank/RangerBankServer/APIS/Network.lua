@@ -37,14 +37,20 @@ end
 function Network.send(SendId, Message, Protocol, id, needEncrypt)
     if SendId == "1" then
         if not needEncrypt then
-            Message = crypto.encrypt(Short.serialize(Message), sessions[id])
+            if type(Message) == "table" then
+                Message = Short.serialize(Message)
+            end
+            Message = crypto.encrypt(Message, sessions[id])
         end
         rednet.send(id, {"RangerBank: 1", Message}, Protocol)
 
         print("Message send!")
     elseif SendId == "2" then
         if not needEncrypt then
-            Message = crypto.encrypt(Short.serialize(Message), sessions[id])
+            if type(Message) == "table" then
+                Message = Short.serialize(Message)
+            end
+            Message = crypto.encrypt(Message, sessions[id])
         end
         rednet.send(id, {"RangerBank: 2", Message}, Protocol)
 
