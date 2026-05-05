@@ -27,18 +27,6 @@ local files = {
         url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankServer/BanIData/ID.txt",
         path = "BanIData/ID.txt"
     },
-    {   -- /BankAccounts/test/
-        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankServer/BankAccounts/test/logs.txt",
-        path = "BankAccounts/test/logs.txt"
-    },
-    {
-        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankServer/BankAccounts/test/money.txt",
-        path = "BankAccounts/test/money.txt"
-    },
-    {
-        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankServer/BankAccounts/test/password.txt",
-        path = "BankAccounts/test/password.txt"
-    },
     {   -- /BankData/
         url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankServer/BankData/Off.txt",
         path = "BankData/Off.txt"
