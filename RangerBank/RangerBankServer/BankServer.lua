@@ -11,7 +11,9 @@ while true do
     local try = pcall(Network.MessageHandler)
     if try == false then
         print("")
-        printError("Unknown Error")
+        printError("Error:")
+        print("")
+        printError(err)
         print("")
         sleep(0)
     end
