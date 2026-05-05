@@ -18,6 +18,18 @@ function Short.Read(filepath)
     return text
 end
 
+function Short.is_in_table(table, v)
+    local found = false
+
+    for key, _ in pairs(table) do
+        if key == v then
+            found = true
+            break
+        end
+    end
+    return found
+end
+
 function Short.serialize(v)
     return textutils.serialize(v)
 end
