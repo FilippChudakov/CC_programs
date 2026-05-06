@@ -14,7 +14,6 @@ function Short.Crypt(data, key)
 end
 
 function Short.Write(text, filepath)
-    -- Шифруем данные ключом компьютера перед записью[cite: 8]
     local encrypted = Short.Crypt(tostring(text), hardwareKey)
     local file = fs.open(filepath, "w")
     file.write(encrypted)
@@ -26,78 +25,30 @@ function Short.Read(filepath)
     if file == nil then return nil end
     local text = file.readAll()
     file.close()
-    -- Дешифруем тем же ключом[cite: 8]
     return Short.Crypt(text, hardwareKey)
 end
 
-function Short.serialize(t, indent, visited)
-    indent = indent or 0
-    visited = visited or {}
-    local spaces = string.rep(" ", indent)
-    
-    if type(t) == "table" then
-        if visited[t] then return '"[[CIRCULAR_REFERENCE]]"' end
-        visited[t] = true
-        
-        local is_array = true
-        local max_index = 0
-        for k, _ in pairs(t) do
-            if type(k) ~= "number" or k <= 0 or math.floor(k) ~= k then
-                is_array = false
-                break
-            end
-            if k > max_index then max_index = k end
+function Short.is_in_table(table, v)
+    local found = false
+
+    for key, _ in pairs(table) do
+        if key == v then
+            found = true
+            break
         end
-        
-        local result = {}
-        table.insert(result, "{\n")
-        
-        if is_array then
-            -- Сериализация как массива с сохранением порядка
-            for i = 1, max_index do
-                if t[i] ~= nil then
-                    table.insert(result, spaces .. "  ")
-                    table.insert(result, Short.serialize(t[i], indent + 2, visited))
-                    table.insert(result, ",\n")
-                end
-            end
-        else
-            -- Сериализация как таблицы с сохранением порядка
-            local keys = {}
-            for k, _ in pairs(t) do table.insert(keys, k) end
-            table.sort(keys, function(a, b)
-                if type(a) == type(b) then return a < b end
-                return tostring(a) < tostring(b)
-            end)
-            
-            for _, k in ipairs(keys) do
-                table.insert(result, spaces .. "  [")
-                table.insert(result, Short.serialize(k, indent + 2, visited))
-                table.insert(result, "] = ")
-                table.insert(result, Short.serialize(t[k], indent + 2, visited))
-                table.insert(result, ",\n")
-            end
-        end
-        
-        table.insert(result, spaces .. "}")
-        return table.concat(result)
-    elseif type(t) == "string" then
-        return string.format("%q", t)
-    else
-        return tostring(t)
     end
+    return found
 end
 
-function Short.deserialize(str)
-    local chunk, err = load("return " .. str)
-    if not chunk then
-        chunk, err = load(str)
+function Short.NumerateLog(logpath, filepath)
+    local log = textutils.unserialize(Short.Read(logpath))
+    local numeratelog = ""
+
+    for i, value in ipairs(log) do
+        numeratelog = numeratelog..i..". "..textutils.unserialize(value)["type"].."\n"
     end
-    if chunk then
-        return chunk()
-    else
-        error("Failed to deserialize: " .. (err or "unknown error"))
-    end
+
+    Short.Write(numeratelog, filepath)
 end
 
 return Short
