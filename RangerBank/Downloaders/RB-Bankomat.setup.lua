@@ -4,10 +4,14 @@ local files = {
         path = "startup.lua"
     },
     { 
-        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankTerminals/Bankomat/Coder.lua",
-        path = "Coder.lua"
+        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankTerminals/Bankomat/encoder.lua",
+        path = "encoder.lua"
     },
     {   -- /APIS/
+        url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankTerminals/Bankomat/APIS/Crypto.lua",
+        path = "APIS/Crypto.lua"
+    },
+    {
         url = "https://raw.githubusercontent.com/FilippChudakov/CC_programs/refs/heads/main/RangerBank/RangerBankTerminals/Bankomat/APIS/Network.lua",
         path = "APIS/Network.lua"
     },
