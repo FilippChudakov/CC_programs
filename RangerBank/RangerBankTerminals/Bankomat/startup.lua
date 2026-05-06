@@ -6,6 +6,7 @@ local Short = dofile("APIS/ShortCuts.lua")
 local version = Network.version()
 
 Network.open()
+Network.handshake(Network.ID, "RangerBank")
 
 local pass = Short.Read("RangerBankData/SecretPass.txt")
 if not pass or pass == "" then
@@ -130,10 +131,12 @@ UI.addButton(screen, UI.createButton("Add Coins", math.floor(UI.screenWidth/2)-5
 end))
 
 UI.addButton(screen, UI.createButton("Exit", 0, UI.screenHeight-1, 8, 3, function()
+    UI.screens[screen].labels[2].text = ""
     UI.setScreen(exit)
 end))
 
 UI.addButton(screen, UI.createButton(" Diamond", math.floor(UI.screenWidth)-8, 1, 9, 3, function()
+    UI.screens[screen].labels[2].text = ""
     UI.setScreen(diamond)
 end))
 
@@ -141,7 +144,7 @@ end))
 -- DiamondScreen
 
 UI.addInput(diamond, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-5, 17, 3, "Enter Login", 10))
-UI.addInput(diamond, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-2, 17, 3, "Enter Pass", 10))
+UI.addInput(diamond, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-2, 17, 3, "Enter Pass", 10, true))
 UI.addInput(diamond, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)+1, 17, 3, "Enter Summ", 10))
 
 UI.addButton(diamond, UI.createButton("Get Diamonds", math.floor(UI.screenWidth/2)-7, math.floor(UI.screenHeight/2)+5, 15, 3, function()
@@ -211,10 +214,12 @@ UI.addButton(diamond, UI.createButton("Get Diamonds", math.floor(UI.screenWidth/
 end))
 
 UI.addButton(diamond, UI.createButton("Exit", 0, UI.screenHeight-1, 8, 3, function()
+    UI.screens[diamond].labels[2].text = ""
     UI.setScreen(exit)
 end))
 
 UI.addButton(diamond, UI.createButton("Coins", math.floor(UI.screenWidth)-8, 1, 9, 3, function()
+    UI.screens[diamond].labels[2].text = ""
     UI.setScreen(screen)
 end))
 
@@ -242,6 +247,7 @@ UI.addButton(exit, UI.createButton("Exit", math.floor(UI.screenWidth/2)-4, math.
 end))
 
 UI.addButton(exit, UI.createButton("Back", 0, UI.screenHeight-1, 8, 3, function()
+    UI.screens[exit].labels[2].text = ""
     UI.setScreen(screen)
 end))
 
