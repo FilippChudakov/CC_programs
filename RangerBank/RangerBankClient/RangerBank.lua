@@ -7,6 +7,46 @@ if not Network.handshake(Network.ID, "RangerBank") then
     return
 end
 
+local logined = false
+
+local function parsePaymentLink(link)
+    if not string.find(link, "^bank://pay%?") then
+        return nil, "Invalid format"
+    end
+
+    local query = string.match(link, "%?(.*)")
+    local params = {}
+
+    for pair in string.gmatch(query, "([^&]+)") do
+        local key, value = string.match(pair, "([^=]+)=([^=]+)")
+        if key and value then
+            params[key] = value
+        end
+    end
+
+    if not params.to or not params.amount then
+        return nil, "Missing required fields"
+    end
+
+    params.amount = tonumber(params.amount)
+    if not params.amount then
+        return nil, "Invalid amount"
+    end
+
+    return params
+end
+
+local function generatePaymentLink(data)
+    local base = "bank://pay?"
+    local parts = {}
+
+    for k, v in pairs(data) do
+        table.insert(parts, k .. "=" .. tostring(v))
+    end
+
+    return base .. table.concat(parts, "&")
+end
+
 UI.BGtheme = colors.blue
 UI.button_Theme["bg"] = colors.green
 UI.button_Theme["light_bg"] = colors.lime
@@ -92,6 +132,7 @@ UI.addButton(registerScreen, UI.createButton("Enter", math.floor(UI.screenWidth/
     Network.send(Network.ID, "RangerBank:register", {Pass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
     if status == "Complete!" then
+        logined = true
         Short.Write(Login, "RangerBankData/Account.txt")
         Short.Write(Pass, "RangerBankData/Password.txt")
         UI.screens[mainScreen].labels[2].text = "Account created!"
@@ -128,6 +169,7 @@ UI.addButton(loginScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-
     Network.send(Network.ID, "RangerBank:login", {Pass, Login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
     if status == "Complete!" then
+        logined = true
         Short.Write(Login, "RangerBankData/Account.txt")
         Short.Write(Pass, "RangerBankData/Password.txt")
         Network.send(Network.ID, "RangerBank:first_login_log", {Pass, Login}, "RangerBank")
@@ -197,6 +239,7 @@ UI.addButton(accountScreen, UI.createButton("Delete Account", math.floor(UI.scre
 end))
 
 UI.addButton(accountScreen, UI.createButton("Logout", math.floor(UI.screenWidth/2)-5, math.floor(UI.screenHeight/2)-1+2, 10, 3, function()
+    logined = false
     fs.delete("RangerBankData/Account.txt")
     fs.delete("RangerBankData/Password.txt")
     UI.screens[logregScreen].labels[2].text = "Logout successfully!"
@@ -345,6 +388,22 @@ UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-9, math.
 UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-4, 16, 3, "Enter Pass", 10, true))
 UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.floor(UI.screenHeight/2)-1-1, 16, 3, "Enter Summ", 10))
 
+UI.pasteTextFunction = function(text)
+    if not logined then return end
+    UI.setScreen(transferScreen)
+    local data = parsePaymentLink(text)
+    local password = Short.Read("RangerBankData/Password.txt")
+    local input1 = UI.screens[transferScreen].inputs[1]
+    input1.text = data.to
+    input1.isPlaceholder = false
+    local input2 = UI.screens[transferScreen].inputs[2]
+    input2.text = password
+    input2.isPlaceholder = false
+    local input3 = UI.screens[transferScreen].inputs[3]
+    input3.text = tostring(data.amount)
+    input3.isPlaceholder = false
+end
+
 UI.addButton(transferScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+3, 8, 3, function()
     local Receiver = UI.screens[transferScreen].inputs[1].text
     local Pass = UI.screens[transferScreen].inputs[2].text
@@ -385,27 +444,27 @@ UI.addButtonArray(logsScreen, UI.createButtonArray(math.floor(UI.screenWidth/2)-
         if not recordNum then return end
         
         local logsContent = Short.Read("RangerBankData/logs.txt")
-        local allLogs = Short.deserialize(logsContent)
+        local allLogs = textutils.unserialize(logsContent)
         local logEntry = allLogs[recordNum]
         
-        local log = Short.deserialize(logEntry)
+        local log = textutils.unserialize(logEntry)
             
         if log.type == "Transfer" or log.type == "Receive" then
             UI.screens[logsScreen].labels[3].text = "type: "..log.type
             UI.screens[logsScreen].labels[4].text = "date: "..log.date
-            UI.screens[logsScreen].labels[5].text = "id: "..Short.deserialize(log.data)[3]
-            UI.screens[logsScreen].labels[6].text = "data1: "..Short.deserialize(log.data)[1]
-            UI.screens[logsScreen].labels[7].text = "data2: "..Short.deserialize(log.data)[2]
+            UI.screens[logsScreen].labels[5].text = "id: "..textutils.unserialize(log.data)[3]
+            UI.screens[logsScreen].labels[6].text = "data1: "..textutils.unserialize(log.data)[1]
+            UI.screens[logsScreen].labels[7].text = "data2: "..textutils.unserialize(log.data)[2]
         elseif log.type == "Add money" or log.type == "Minus money" then
             UI.screens[logsScreen].labels[3].text = "type: "..log.type
             UI.screens[logsScreen].labels[4].text = "date: "..log.date
             UI.screens[logsScreen].labels[5].text = "id:"
-            UI.screens[logsScreen].labels[6].text = "data1: "..Short.deserialize(log.data)[1]
+            UI.screens[logsScreen].labels[6].text = "data1: "..textutils.unserialize(log.data)[1]
             UI.screens[logsScreen].labels[7].text = "data2:"
         else
             UI.screens[logsScreen].labels[3].text = "type: "..log.type
             UI.screens[logsScreen].labels[4].text = "date: "..log.date
-            UI.screens[logsScreen].labels[5].text = "id: "..Short.deserialize(log.data)[1]
+            UI.screens[logsScreen].labels[5].text = "id: "..textutils.unserialize(log.data)[1]
             UI.screens[logsScreen].labels[6].text = "data1:"
             UI.screens[logsScreen].labels[7].text = "data2:"
         end
@@ -476,6 +535,7 @@ if login ~= nil and password ~= nil and Secure ~= "1" then
     Network.send(Network.ID, "RangerBank:login", {password, login}, "RangerBank")
     local status, message = Network.receive("RangerBank", 1)
     if status == "Complete!" then
+        logined = true
         UI.screens[mainScreen].labels[2].text = "Successfully logined!"
         UI.screens[mainScreen].labels[2].fgColor = colors.lime
         UI.setScreen(mainScreen)
