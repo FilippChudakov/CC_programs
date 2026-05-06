@@ -40,7 +40,7 @@ function Network.handshake(ID, Protocol)
     local id, serverPub = rednet.receive(Protocol, 2)
 
     if not id then
-        print("Ошибка: Сервер не ответил на запрос ключа")
+        print("Error: No response from server.")
         return false
     end
 
