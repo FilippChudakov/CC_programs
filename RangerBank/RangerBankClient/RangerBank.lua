@@ -3,7 +3,9 @@ local Network = dofile("APIS/Network.lua")
 local Short = dofile("APIS/ShortCuts.lua")
 
 Network.open()
-Network.handshake(Network.ID, "RangerBank")
+if not Network.handshake(Network.ID, "RangerBank") then
+    return
+end
 
 UI.BGtheme = colors.blue
 UI.button_Theme["bg"] = colors.green
