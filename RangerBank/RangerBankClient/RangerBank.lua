@@ -37,6 +37,7 @@ local function parsePaymentLink(link)
 end
 
 local function generatePaymentLink(data)
+    -- Example: bank://pay?to=test&amount=1
     local base = "bank://pay?"
     local parts = {}
 
@@ -390,18 +391,24 @@ UI.addInput(transferScreen, UI.createInput(math.floor(UI.screenWidth/2)-8, math.
 
 UI.pasteTextFunction = function(text)
     if not logined then return end
-    UI.setScreen(transferScreen)
-    local data = parsePaymentLink(text)
-    local password = Short.Read("RangerBankData/Password.txt")
-    local input1 = UI.screens[transferScreen].inputs[1]
-    input1.text = data.to
-    input1.isPlaceholder = false
-    local input2 = UI.screens[transferScreen].inputs[2]
-    input2.text = password
-    input2.isPlaceholder = false
-    local input3 = UI.screens[transferScreen].inputs[3]
-    input3.text = tostring(data.amount)
-    input3.isPlaceholder = false
+    local data, err = parsePaymentLink(text)
+    if err == nil then
+        UI.setScreen(transferScreen)
+        local password = Short.Read("RangerBankData/Password.txt")
+        local input1 = UI.screens[transferScreen].inputs[1]
+        input1.text = data.to
+        input1.isPlaceholder = false
+        local input2 = UI.screens[transferScreen].inputs[2]
+        input2.text = password
+        input2.isPlaceholder = false
+        local input3 = UI.screens[transferScreen].inputs[3]
+        input3.text = tostring(data.amount)
+        input3.isPlaceholder = false
+    else
+        UI.screens[mainScreen].labels[2].text = err
+        UI.screens[mainScreen].labels[2].fgColor = colors.red
+        UI.setScreen(mainScreen)
+    end
 end
 
 UI.addButton(transferScreen, UI.createButton("Enter", math.floor(UI.screenWidth/2)-4, math.floor(UI.screenHeight/2)-1+3, 8, 3, function()
