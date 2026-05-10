@@ -322,6 +322,8 @@ function Network.MessageHandler()
                 Network.send_error("wrong_message_format", session_id)
                 return
             end
+            
+            message["account"] = message["account"]:lower()
 
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
@@ -351,6 +353,8 @@ function Network.MessageHandler()
                 Network.send_error("wrong_message_format", session_id)
                 return
             end
+            
+            message["account"] = message["account"]:lower()
 
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
@@ -382,6 +386,8 @@ function Network.MessageHandler()
                 Network.send_error("wrong_message_format", session_id)
                 return
             end
+            
+            message["account"] = message["account"]:lower()
 
             local AccountPATH = "BankAccounts/"..message["account"]
             local PassPATH = "BankAccounts/"..message["account"].."/password.txt"
