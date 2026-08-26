@@ -1,6 +1,7 @@
 Short = {}
 
 Short.commission = 1.00
+Short.symbols_list = {}
 
 function Short.Write(text, filepath)
     local file = fs.open(filepath, "w")
@@ -85,13 +86,12 @@ function Short.DeleteFullLog(filepath, typed)
 end
 
 function Short.BanSymbols(data)
-    local symbols = Short.Read("BankData/symbols.txt")
+    if Short.symbols_list == {} then
+        local symbols = Short.Read("BankData/symbols.txt")
 
-    symbols_list = {}
-
-    for symbol in symbols:gmatch("%S+") do
-        table.insert(symbols_list, symbol)
-    end
+        for symbol in symbols:gmatch("%S+") do
+            table.insert(Short.symbols_list, symbol)
+        end
 
     ban = false
 
@@ -118,7 +118,7 @@ function Short.GetMoney(AccName)
         print("Account exists...")
         local MoneyPATH = "BankAccounts/"..AccName.."/money.txt"
         
-        money = Short.Read(MoneyPATH)
+        local money = Short.Read(MoneyPATH)
         
         print("Complete!\n")
         return money
