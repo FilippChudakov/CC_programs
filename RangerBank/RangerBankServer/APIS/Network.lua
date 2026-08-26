@@ -272,15 +272,15 @@ function Network.MessageHandler()
         elseif message[1] == "RangerBank:minus_money" then
             print("minusing money...")
 
-            message["account"] = message["account"]:lower()
-
-            local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
-
             if not Short.is_in_table(message, "account") or not Short.is_in_table(message, "summ") or not Short.is_in_table(message, "secret_pass") then
                 printError("Wrong message format!")
                 Network.send_error("wrong_message_format", session_id)
                 return
             end
+
+            message["account"] = message["account"]:lower()
+
+            local LogsPATH = "BankAccounts/"..message["account"].."/logs.txt"
 
             local result = Short.MinusMoney(message["account"], message["summ"], message["secret_pass"], session_id)
             if result == true then
