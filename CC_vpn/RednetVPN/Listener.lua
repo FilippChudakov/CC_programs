@@ -42,9 +42,9 @@ end
 while true do
     local event, side, channel, replyChannel, message, distance = os.pullEvent("modem_message")
     
-    print("\n--- Message Caught --- \n Distance: " .. distance)
+    print("\n--- Message Caught --- \n Distance: " .. (distance or "nil"))
 
-    local text = "\n--- Message Caught ---" .. "\nFrom Channel: " .. channel .. "\nReply Channel: " .. replyChannel.. "\nDistance: " .. distance
+    local text = "\n--- Message Caught ---" .. "\nFrom Channel: " .. channel .. "\nReply Channel: " .. replyChannel.. "\nDistance: " .. (distance or "nil")
     
     if type(message) == "table" then
         text = text .. "\nContent: " .. textutils.serialize(message)
